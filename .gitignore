@@ -22,3 +22,9 @@ mcu/keil/*.scvd
 # OS artifacts
 .DS_Store
 Thumbs.db
+
+# Quartus Files
+fpga/db
+fpga/incremental_db
+fpga/output_files
+fpga/simulation
