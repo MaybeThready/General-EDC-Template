@@ -1,0 +1,24 @@
+# Keil/MDK build outputs
+mcu/keil/Objects
+mcu/keil/*.uvguix*
+mcu/keil/*.uvoptx
+mcu/keil/*.dep
+mcu/keil/*.htm
+mcu/keil/*.lnp
+mcu/keil/*.scvd
+
+# General build artifacts
+**/*.o
+**/*.obj
+**/*.elf
+**/*.axf
+**/*.bin
+**/*.hex
+**/*.map
+**/*.d
+**/*.lst
+**/*.log
+
+# OS artifacts
+.DS_Store
+Thumbs.db
