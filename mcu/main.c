@@ -1,6 +1,6 @@
 #include "ti_msp_dl_config.h"
 #include "bsp/msp_sys.h"
-#include "bsp/oled.h"
+#include "bsp/oled/oled.h"
 #include "bsp/keyboard.h"
 #include "bsp/led.h"
 #include <string.h>
@@ -26,8 +26,8 @@ int main()
         {
             strcpy(test_str, "Hello, World!");
         }
-        oled_show_string(0, 0, test_str);
-        delay_cycles(TIME_MS(10));
+        oled_show_string(0, 0, test_str, OLED_6X8_HALF);
+        oled_refresh();
     }
 
     return 0;

@@ -45,6 +45,13 @@ typedef enum
     KEY_RELEASE    // 按键瞬时被松开事件
 } KeySignalEvent;  
 
+// 按键消抖目标事件枚举
+typedef enum
+{
+    KEY_DEBOUNCE_PRESS,    // 消抖确认按下
+    KEY_DEBOUNCE_RELEASE   // 消抖确认松开
+} KeyDebounceTarget;
+
 // 按键对象结构体
 typedef struct
 {
@@ -52,6 +59,7 @@ typedef struct
     KeyStateEvent state_event;    // 按键状态事件
     KeySignalEvent signal_event;  // 按键瞬时信号事件
     bool is_debouncing;           // 是否正在消抖
+    KeyDebounceTarget debounce_target; // 消抖目标事件
     uint32_t debounce_tick;       // 去抖动开始的系统时钟节拍数
 } Key;
 

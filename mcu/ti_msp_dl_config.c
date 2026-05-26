@@ -157,17 +157,16 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
 		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
 
-    DL_GPIO_initDigitalOutput(OLED_DC_IOMUX);
+    DL_GPIO_initDigitalOutput(OLED_RES_IOMUX);
 
     DL_GPIO_initDigitalOutput(OLED_CS_IOMUX);
 
-    DL_GPIO_initDigitalOutput(OLED_RES_IOMUX);
+    DL_GPIO_initDigitalOutput(OLED_DC_IOMUX);
 
     DL_GPIO_setPins(GPIOA, LED_L1_PIN |
 		LED_L2_PIN);
     DL_GPIO_enableOutput(GPIOA, LED_L1_PIN |
 		LED_L2_PIN);
-    DL_GPIO_clearPins(GPIOB, OLED_RES_PIN);
     DL_GPIO_setPins(GPIOB, LED_L3_PIN |
 		LED_L4_PIN |
 		LED_L5_PIN |
@@ -175,7 +174,8 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		KEYBOARD_H1_PIN |
 		KEYBOARD_H2_PIN |
 		KEYBOARD_H3_PIN |
-		KEYBOARD_H4_PIN);
+		KEYBOARD_H4_PIN |
+		OLED_RES_PIN);
     DL_GPIO_enableOutput(GPIOB, LED_L3_PIN |
 		LED_L4_PIN |
 		LED_L5_PIN |
@@ -185,14 +185,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		KEYBOARD_H3_PIN |
 		KEYBOARD_H4_PIN |
 		OLED_RES_PIN);
-    DL_GPIO_clearPins(GPIOC, OLED_DC_PIN |
-		OLED_CS_PIN);
     DL_GPIO_setPins(GPIOC, LED_L7_PIN |
-		LED_L8_PIN);
+		LED_L8_PIN |
+		OLED_CS_PIN |
+		OLED_DC_PIN);
     DL_GPIO_enableOutput(GPIOC, LED_L7_PIN |
 		LED_L8_PIN |
-		OLED_DC_PIN |
-		OLED_CS_PIN);
+		OLED_CS_PIN |
+		OLED_DC_PIN);
 
 }
 
@@ -307,5 +307,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_SPI_0_init(void) {
 SYSCONFIG_WEAK void SYSCFG_DL_SYSTICK_init(void)
 {
     DL_SYSTICK_enableInterrupt();
+    NVIC_SetPriority(SysTick_IRQn, 0);
 }
 

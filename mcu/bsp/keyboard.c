@@ -21,6 +21,7 @@ void init_keyboard()
             keyboard_keys[i][j].state_event = KEY_OFF;
             keyboard_keys[i][j].signal_event = KEY_IDLE;
             keyboard_keys[i][j].is_debouncing = false;
+            keyboard_keys[i][j].debounce_target = KEY_DEBOUNCE_PRESS;
             keyboard_keys[i][j].debounce_tick = 0;
         }
     }
@@ -39,12 +40,20 @@ void keyboard_update()
             {
                 if (keyboard_keys[i][j].is_debouncing)  // 如果当前按键正在消抖
                 {
-                    if ((sys_tick - keyboard_keys[i][j].debounce_tick) * SYS_TICK_PERIOD >= KEYBOARD_DEBOUNCE_DELAY)
+                    if (keyboard_keys[i][j].debounce_target == KEY_DEBOUNCE_PRESS)
                     {
-                        // 消抖完成，确认按键事件
-                        keyboard_keys[i][j].state_event = KEY_ON;
-                        keyboard_keys[i][j].signal_event = KEY_PRESS;
-                        keyboard_keys[i][j].is_debouncing = false;  // 重置消抖状态
+                        if ((sys_tick - keyboard_keys[i][j].debounce_tick) * SYS_TICK_PERIOD >= KEYBOARD_DEBOUNCE_DELAY)
+                        {
+                            // 消抖完成，确认按键事件
+                            keyboard_keys[i][j].state_event = KEY_ON;
+                            keyboard_keys[i][j].signal_event = KEY_PRESS;
+                            keyboard_keys[i][j].is_debouncing = false;  // 重置消抖状态
+                        }
+                    }
+                    else
+                    {
+                        // 消抖目标为松开，但读到了按下，取消消抖
+                        keyboard_keys[i][j].is_debouncing = false;
                     }
                 }
                 else  // 如果当前按键没有在消抖
@@ -53,6 +62,7 @@ void keyboard_update()
                     {
                         // 开始消抖
                         keyboard_keys[i][j].is_debouncing = true;
+                        keyboard_keys[i][j].debounce_target = KEY_DEBOUNCE_PRESS;
                         keyboard_keys[i][j].debounce_tick = sys_tick;
                     }
                     else
@@ -67,16 +77,30 @@ void keyboard_update()
             {
                 if (keyboard_keys[i][j].is_debouncing)  // 如果当前按键正在消抖
                 {
-                    // 如果按键已经松开，重置消抖状态
-                    keyboard_keys[i][j].is_debouncing = false;
+                    if (keyboard_keys[i][j].debounce_target == KEY_DEBOUNCE_RELEASE)
+                    {
+                        if ((sys_tick - keyboard_keys[i][j].debounce_tick) * SYS_TICK_PERIOD >= KEYBOARD_DEBOUNCE_DELAY)
+                        {
+                            // 消抖完成，确认松开事件
+                            keyboard_keys[i][j].state_event = KEY_OFF;
+                            keyboard_keys[i][j].signal_event = KEY_RELEASE;
+                            keyboard_keys[i][j].is_debouncing = false;  // 重置消抖状态
+                        }
+                    }
+                    else
+                    {
+                        // 消抖目标为按下，但读到了松开，取消消抖
+                        keyboard_keys[i][j].is_debouncing = false;
+                    }
                 }
                 else
                 {
                     if (keyboard_keys[i][j].state_event == KEY_ON)  // 如果按键之前是按下状态
                     {
-                        // 按键被松开，触发按键事件
-                        keyboard_keys[i][j].state_event = KEY_OFF;
-                        keyboard_keys[i][j].signal_event = KEY_RELEASE;
+                        // 开始消抖
+                        keyboard_keys[i][j].is_debouncing = true;
+                        keyboard_keys[i][j].debounce_target = KEY_DEBOUNCE_RELEASE;
+                        keyboard_keys[i][j].debounce_tick = sys_tick;
                     }
                     else
                     {

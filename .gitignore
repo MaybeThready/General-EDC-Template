@@ -1,11 +1,5 @@
 # Keil/MDK build outputs
 mcu/keil/Objects
-mcu/keil/*.uvguix*
-mcu/keil/*.uvoptx
-mcu/keil/*.dep
-mcu/keil/*.htm
-mcu/keil/*.lnp
-mcu/keil/*.scvd
 
 # General build artifacts
 **/*.o

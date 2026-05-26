@@ -425,16 +425,6 @@
               <FilePath>..\bsp\keyboard.h</FilePath>
             </File>
             <File>
-              <FileName>oled.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\bsp\oled.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\bsp\oled.h</FilePath>
-            </File>
-            <File>
               <FileName>uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\bsp\uart.c</FilePath>
@@ -473,6 +463,36 @@
               <FileName>led.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\bsp\led.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\oled\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\bsp\oled\oled.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\oled\oled_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_driver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\bsp\oled\oled_driver.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_fonts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\oled\oled_fonts.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_fonts.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\bsp\oled\oled_fonts.h</FilePath>
             </File>
           </Files>
         </Group>

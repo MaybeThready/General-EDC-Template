@@ -18,3 +18,15 @@ void init_sys();
 
 // 系统时钟节拍中断处理函数，每当系统时钟节拍中断发生时调用，递增系统时钟节拍计数器
 void SysTick_Handler(void);
+
+// 微秒级阻塞延时
+void delay_us(uint32_t us);
+
+// 毫秒级阻塞延时
+void delay_ms(uint32_t ms);
+
+// 秒级阻塞延时
+void delay_s(uint32_t s);
+
+// HardFault异常处理函数，系统发生严重错误时调用，进入死循环以便调试
+void HardFault_Handler(void);

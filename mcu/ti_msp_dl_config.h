@@ -177,18 +177,18 @@ extern "C" {
 /* Defines for V4: GPIOB.27 with pinCMx 58 on package pin 97 */
 #define KEYBOARD_V4_PIN                                         (DL_GPIO_PIN_27)
 #define KEYBOARD_V4_IOMUX                                        (IOMUX_PINCM58)
-/* Defines for DC: GPIOC.8 with pinCMx 86 on package pin 80 */
-#define OLED_DC_PORT                                                     (GPIOC)
-#define OLED_DC_PIN                                              (DL_GPIO_PIN_8)
-#define OLED_DC_IOMUX                                            (IOMUX_PINCM86)
-/* Defines for CS: GPIOC.9 with pinCMx 87 on package pin 81 */
-#define OLED_CS_PORT                                                     (GPIOC)
-#define OLED_CS_PIN                                              (DL_GPIO_PIN_9)
-#define OLED_CS_IOMUX                                            (IOMUX_PINCM87)
 /* Defines for RES: GPIOB.23 with pinCMx 51 on package pin 85 */
 #define OLED_RES_PORT                                                    (GPIOB)
 #define OLED_RES_PIN                                            (DL_GPIO_PIN_23)
 #define OLED_RES_IOMUX                                           (IOMUX_PINCM51)
+/* Defines for CS: GPIOC.9 with pinCMx 87 on package pin 81 */
+#define OLED_CS_PORT                                                     (GPIOC)
+#define OLED_CS_PIN                                              (DL_GPIO_PIN_9)
+#define OLED_CS_IOMUX                                            (IOMUX_PINCM87)
+/* Defines for DC: GPIOC.8 with pinCMx 86 on package pin 80 */
+#define OLED_DC_PORT                                                     (GPIOC)
+#define OLED_DC_PIN                                              (DL_GPIO_PIN_8)
+#define OLED_DC_IOMUX                                            (IOMUX_PINCM86)
 
 
 
