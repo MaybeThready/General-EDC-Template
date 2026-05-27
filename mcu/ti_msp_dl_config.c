@@ -55,7 +55,6 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_DEFAULT_UART_init();
     SYSCFG_DL_SPI_0_init();
     SYSCFG_DL_SYSTICK_init();
-    SYSCFG_DL_SYSCTL_CLK_init();
     /* Ensure backup structures have no valid state */
 
 	gSPI_0Backup.backupRdy 	= false;
@@ -199,59 +198,35 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 
 
 static const DL_SYSCTL_SYSPLLConfig gSYSPLLConfig = {
-    .inputFreq              = DL_SYSCTL_SYSPLL_INPUT_FREQ_32_48_MHZ,
-	.rDivClk2x              = 1,
-	.rDivClk1               = 0,
+    .inputFreq              = DL_SYSCTL_SYSPLL_INPUT_FREQ_16_32_MHZ,
+	.rDivClk2x              = 3,
+	.rDivClk1               = 1,
 	.rDivClk0               = 0,
-	.enableCLK2x            = DL_SYSCTL_SYSPLL_CLK2X_DISABLE,
+	.enableCLK2x            = DL_SYSCTL_SYSPLL_CLK2X_ENABLE,
 	.enableCLK1             = DL_SYSCTL_SYSPLL_CLK1_DISABLE,
-	.enableCLK0             = DL_SYSCTL_SYSPLL_CLK0_ENABLE,
-	.sysPLLMCLK             = DL_SYSCTL_SYSPLL_MCLK_CLK0,
-	.sysPLLRef              = DL_SYSCTL_SYSPLL_REF_HFCLK,
-	.qDiv                   = 3,
-	.pDiv                   = DL_SYSCTL_SYSPLL_PDIV_1
+	.enableCLK0             = DL_SYSCTL_SYSPLL_CLK0_DISABLE,
+	.sysPLLMCLK             = DL_SYSCTL_SYSPLL_MCLK_CLK2X,
+	.sysPLLRef              = DL_SYSCTL_SYSPLL_REF_SYSOSC,
+	.qDiv                   = 9,
+	.pDiv                   = DL_SYSCTL_SYSPLL_PDIV_2
 };
 SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
 {
 
 	//Low Power Mode is configured to be SLEEP0
     DL_SYSCTL_setBORThreshold(DL_SYSCTL_BOR_THRESHOLD_LEVEL_0);
-    DL_SYSCTL_setFlashWaitState(DL_SYSCTL_FLASH_WAIT_STATE_1);
+    DL_SYSCTL_setFlashWaitState(DL_SYSCTL_FLASH_WAIT_STATE_2);
 
     
 	DL_SYSCTL_setSYSOSCFreq(DL_SYSCTL_SYSOSC_FREQ_BASE);
 	/* Set default configuration */
 	DL_SYSCTL_disableHFXT();
 	DL_SYSCTL_disableSYSPLL();
-    DL_SYSCTL_setHFCLKSourceHFXTParams(DL_SYSCTL_HFXT_RANGE_32_48_MHZ,0, false);
     DL_SYSCTL_configSYSPLL((DL_SYSCTL_SYSPLLConfig *) &gSYSPLLConfig);
     DL_SYSCTL_setULPCLKDivider(DL_SYSCTL_ULPCLK_DIV_2);
-    DL_SYSCTL_setHFCLKDividerForMFPCLK(DL_SYSCTL_HFCLK_MFPCLK_DIVIDER_10);
-    DL_SYSCTL_enableMFCLK();
-    DL_SYSCTL_enableMFPCLK();
-	DL_SYSCTL_setMFPCLKSource(DL_SYSCTL_MFPCLK_SOURCE_HFCLK);
     DL_SYSCTL_setMCLKSource(SYSOSC, HSCLK, DL_SYSCTL_HSCLK_SOURCE_SYSPLL);
-    /* Enable interrupt for Flash Command execution is complete */
-    DL_FlashCTL_enableInterrupt(FLASHCTL);
 
 }
-SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_CLK_init(void) {
-    while ((DL_SYSCTL_getClockStatus() & (DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD
-		 | DL_SYSCTL_CLK_STATUS_HFCLK_GOOD
-		 | DL_SYSCTL_CLK_STATUS_HSCLK_GOOD
-		 | DL_SYSCTL_CLK_STATUS_LFOSC_GOOD))
-	       != (DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD
-		 | DL_SYSCTL_CLK_STATUS_HFCLK_GOOD
-		 | DL_SYSCTL_CLK_STATUS_HSCLK_GOOD
-		 | DL_SYSCTL_CLK_STATUS_LFOSC_GOOD))
-	{
-		/* Ensure that clocks are in default POR configuration before initialization.
-		* Additionally once LFXT is enabled, the internal LFOSC is disabled, and cannot
-		* be re-enabled other than by executing a BOOTRST. */
-		;
-	}
-}
-
 
 
 static const DL_UART_Main_ClockConfig gDEFAULT_UARTClockConfig = {

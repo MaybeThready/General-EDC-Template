@@ -23,32 +23,23 @@ const UART1   = UART.addInstance();
 /**
  * Write custom configuration values to the imported modules.
  */
-const divider2       = system.clockTree["HFCLK4MFPCLKDIV"];
-divider2.divideValue = 10;
+const divider5       = system.clockTree["PLL_CLK1_DIV"];
+divider5.divideValue = 4;
+
+const divider6       = system.clockTree["PLL_CLK2X_DIV"];
+divider6.divideValue = 4;
+
+const divider7       = system.clockTree["PLL_PDIV"];
+divider7.divideValue = 2;
 
 const divider9       = system.clockTree["UDIV"];
 divider9.divideValue = 2;
 
-const gate7  = system.clockTree["MFCLKGATE"];
-gate7.enable = true;
-
-const gate8  = system.clockTree["MFPCLKGATE"];
-gate8.enable = true;
-
 const multiplier2         = system.clockTree["PLL_QDIV"];
-multiplier2.multiplyValue = 4;
-
-const mux4       = system.clockTree["EXHFMUX"];
-mux4.inputSelect = "EXHFMUX_XTAL";
+multiplier2.multiplyValue = 10;
 
 const mux8       = system.clockTree["HSCLKMUX"];
-mux8.inputSelect = "HSCLKMUX_SYSPLL0";
-
-const mux10       = system.clockTree["MFPCLKMUX"];
-mux10.inputSelect = "MFPCLKMUX_HFCLK";
-
-const mux12       = system.clockTree["SYSPLLMUX"];
-mux12.inputSelect = "zSYSPLLMUX_HFCLK";
+mux8.inputSelect = "HSCLKMUX_SYSPLL2X";
 
 const pinFunction4     = system.clockTree["HFXT"];
 pinFunction4.enable    = true;
@@ -137,9 +128,6 @@ SPI1.peripheral.sclkPin.$assign = "PB3";
 SPI1.peripheral.mosiPin.$assign = "PB2";
 
 SYSCTL.clockTreeEn           = true;
-SYSCTL.enableIntDone         = true;
-SYSCTL.waitState             = "1";
-SYSCTL.validateClkStatus     = true;
 SYSCTL.forceDefaultClkConfig = true;
 
 SYSTICK.interruptEnable   = true;
