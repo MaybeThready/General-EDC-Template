@@ -1,8 +1,14 @@
-/*
- * FLASH读写模块
- *
+/**
+ * @file flash.h
+ * @author Thready
+ * @brief FLASH读写模块
  * 读写时需要注意对扇区的处理。写入数据前必须要先擦除，可以以选择在写入时自动擦除扇区，也可以先调用flash_erase_sector函数擦除扇区后再写入。擦除和写入都是以扇区为单位的，不能跨扇区操作。
  * flash_write_by_sector函数要求数据必须在同一个扇区内，flash_save函数可以跨扇区写入数据，内部会自动处理跨扇区的情况。flash_load函数也可以跨扇区读取数据。
+ * @version 0.1
+ * @date 2026-05-27
+ * 
+ * @copyright Copyright (c) 2026
+ * 
  */
 
 #pragma once

@@ -126,25 +126,21 @@ GPIO3.associatedPins[2].$name        = "DC";
 GPIO3.associatedPins[2].initialValue = "SET";
 GPIO3.associatedPins[2].pin.$assign  = "PC8";
 
-SPI1.$name                              = "SPI_0";
-SPI1.direction                          = "PICO";
-SPI1.targetBitRate                      = 10000000;
-SPI1.frameFormat                        = "MOTO3";
-SPI1.sclkPinConfig.$name                = "ti_driverlib_gpio_GPIOPinGeneric0";
-SPI1.sclkPinConfig.onlyInternalResistor = scripting.forceWrite(false);
-SPI1.sclkPinConfig.passedPeripheralType = scripting.forceWrite("Digital");
-SPI1.mosiPinConfig.$name                = "ti_driverlib_gpio_GPIOPinGeneric1";
-SPI1.mosiPinConfig.hideOutputInversion  = scripting.forceWrite(false);
-SPI1.mosiPinConfig.onlyInternalResistor = scripting.forceWrite(false);
-SPI1.mosiPinConfig.passedPeripheralType = scripting.forceWrite("Digital");
-SPI1.peripheral.$assign                 = "SPI0";
-SPI1.peripheral.sclkPin.$assign         = "PB3";
-SPI1.peripheral.mosiPin.$assign         = "PB2";
+SPI1.$name                      = "SPI_0";
+SPI1.direction                  = "PICO";
+SPI1.targetBitRate              = 10000000;
+SPI1.frameFormat                = "MOTO3";
+SPI1.sclkPinConfig.$name        = "ti_driverlib_gpio_GPIOPinGeneric0";
+SPI1.mosiPinConfig.$name        = "ti_driverlib_gpio_GPIOPinGeneric1";
+SPI1.peripheral.$assign         = "SPI0";
+SPI1.peripheral.sclkPin.$assign = "PB3";
+SPI1.peripheral.mosiPin.$assign = "PB2";
 
-SYSCTL.forceDefaultClkConfig = true;
 SYSCTL.clockTreeEn           = true;
 SYSCTL.enableIntDone         = true;
 SYSCTL.waitState             = "1";
+SYSCTL.validateClkStatus     = true;
+SYSCTL.forceDefaultClkConfig = true;
 
 SYSTICK.interruptEnable   = true;
 SYSTICK.period            = 80000;

@@ -199,6 +199,7 @@ void SYSCFG_DL_init(void);
 void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
+void SYSCFG_DL_SYSCTL_CLK_init(void);
 void SYSCFG_DL_DEFAULT_UART_init(void);
 void SYSCFG_DL_SPI_0_init(void);
 

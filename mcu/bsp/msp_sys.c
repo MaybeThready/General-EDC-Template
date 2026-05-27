@@ -18,20 +18,12 @@ void SysTick_Handler(void)
 
 void delay_us(uint32_t us)
 {
-    uint32_t cycles = TIME_US(us);
-    while (cycles-- > 0)
-    {
-        __NOP();
-    }
+    delay_cycles(TIME_US(us));
 }
 
 void delay_ms(uint32_t ms)
 {
-    uint32_t start = sys_tick;
-    while ((uint32_t)(sys_tick - start) < ms)
-    {
-        __NOP();
-    }
+    delay_cycles(TIME_MS(ms));
 }
 
 void delay_s(uint32_t s)

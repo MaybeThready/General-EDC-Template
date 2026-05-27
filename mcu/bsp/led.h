@@ -1,3 +1,15 @@
+/**
+ *@file led.h
+ * @author Thready
+ * @brief LED模块
+ * @version 0.1
+ * @date 2026-05-27
+ * 
+ * @copyright Copyright (c) 2026
+ * 
+ */
+
+
 #pragma once
 
 #include "../ti_msp_dl_config.h"

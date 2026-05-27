@@ -1,7 +1,14 @@
-/*
- * 键盘模块
+/**
+ * @file keyboard.h
+ * @author Thready
+ * @brief 矩阵按键模块
  * 使用时在主循环的每一帧调用keyboard_update函数来更新键盘状态并检测按键事件。按键事件可以通过访问keyboard_keys数组来获取，每个按键对象包含了当前的按键状态事件和瞬时信号事件。
  * 键盘按键状态事件有两种：KEY_OFF表示按键未按下状态，KEY_ON表示按键按下状态。键盘按键瞬时信号事件有三种：KEY_IDLE表示按键无事件，KEY_PRESS表示按键瞬时被按下事件，KEY_RELEASE表示按键瞬时被松开事件。
+ * @version 0.1
+ * @date 2026-05-27
+ * 
+ * @copyright Copyright (c) 2026
+ * 
  */
 
 #pragma once
@@ -55,12 +62,12 @@ typedef enum
 // 按键对象结构体
 typedef struct
 {
-    char key_code;                // 键码
     KeyStateEvent state_event;    // 按键状态事件
     KeySignalEvent signal_event;  // 按键瞬时信号事件
-    bool is_debouncing;           // 是否正在消抖
     KeyDebounceTarget debounce_target; // 消抖目标事件
     uint32_t debounce_tick;       // 去抖动开始的系统时钟节拍数
+    char key_code;                // 键码
+    bool is_debouncing;           // 是否正在消抖
 } Key;
 
 extern const uint32_t KEYBOARD_H_PINS[KEYBOARD_NUM_H];                 // 键盘水平行的GPIO引脚

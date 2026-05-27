@@ -1,3 +1,14 @@
+/**
+ *@file msp_sys.h
+ * @author Thready
+ * @brief 系统模块
+ * @version 0.1
+ * @date 2026-05-27
+ * 
+ * @copyright Copyright (c) 2026
+ * 
+ */
+
 #pragma once
 
 #include "../ti_msp_dl_config.h"

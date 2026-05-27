@@ -1,6 +1,13 @@
-/*
- * UART驱动模块，提供UART初始化和数据发送功能
- *对接收数据进行处理时，需注册UartReceiveCallbackFunc回调函数
+/**
+ * @file uart.h
+ * @author Thready
+ * @brief UART驱动模块，提供UART初始化和数据发送功能
+ * 对接收数据进行处理时，需注册UartReceiveCallbackFunc回调函数
+ * @version 0.1
+ * @date 2026-05-27
+ * 
+ * @copyright Copyright (c) 2026
+ * 
  */
 
 #pragma once

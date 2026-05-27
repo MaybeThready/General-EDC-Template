@@ -22,20 +22,20 @@ typedef struct
 
 typedef struct
 {
-	char Index[OLED_CHN_CHAR_WIDTH + 1];
-	uint8_t Data[32];
+	char index[OLED_CHN_CHAR_WIDTH + 1];
+	uint8_t data[32];
 } ChineseCell16x16;
 
 typedef struct
 {
-    char Index[OLED_CHN_CHAR_WIDTH + 1];
-    uint8_t Data[24];
+    char index[OLED_CHN_CHAR_WIDTH + 1];
+    uint8_t data[24];
 } ChineseCell12x12;
 
 typedef struct 
 {
-    char Index[OLED_CHN_CHAR_WIDTH + 1];
-    uint8_t Data[8];
+    char index[OLED_CHN_CHAR_WIDTH + 1];
+    uint8_t data[8];
 } ChineseCell8x8;
 
 // ASCII字符点阵

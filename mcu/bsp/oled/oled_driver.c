@@ -1,5 +1,6 @@
 #include "oled_driver.h"
 #include "../msp_sys.h"
+#include <string.h>
 
 uint8_t oled_display_buffer[OLED_HEIGHT / 8][OLED_WIDTH];  // 显存
 
@@ -177,13 +178,7 @@ void init_oled()
     oled_write_byte(0xDB, OLED_CMD);
     oled_write_byte(0x35, OLED_CMD);
 
-	for (uint8_t i = 0; i < OLED_HEIGHT / 8; i++)
-	{
-		for (uint8_t j = 0; j < OLED_WIDTH; j++)
-		{
-			oled_display_buffer[i][j] = 0x00;
-		}
-    }
+	memset(oled_display_buffer, 0x00, sizeof(oled_display_buffer));
     oled_refresh();
 
     oled_write_byte(0xAF, OLED_CMD);

@@ -55,6 +55,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_DEFAULT_UART_init();
     SYSCFG_DL_SPI_0_init();
     SYSCFG_DL_SYSTICK_init();
+    SYSCFG_DL_SYSCTL_CLK_init();
     /* Ensure backup structures have no valid state */
 
 	gSPI_0Backup.backupRdy 	= false;
@@ -234,6 +235,23 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
     DL_FlashCTL_enableInterrupt(FLASHCTL);
 
 }
+SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_CLK_init(void) {
+    while ((DL_SYSCTL_getClockStatus() & (DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD
+		 | DL_SYSCTL_CLK_STATUS_HFCLK_GOOD
+		 | DL_SYSCTL_CLK_STATUS_HSCLK_GOOD
+		 | DL_SYSCTL_CLK_STATUS_LFOSC_GOOD))
+	       != (DL_SYSCTL_CLK_STATUS_SYSPLL_GOOD
+		 | DL_SYSCTL_CLK_STATUS_HFCLK_GOOD
+		 | DL_SYSCTL_CLK_STATUS_HSCLK_GOOD
+		 | DL_SYSCTL_CLK_STATUS_LFOSC_GOOD))
+	{
+		/* Ensure that clocks are in default POR configuration before initialization.
+		* Additionally once LFXT is enabled, the internal LFOSC is disabled, and cannot
+		* be re-enabled other than by executing a BOOTRST. */
+		;
+	}
+}
+
 
 
 static const DL_UART_Main_ClockConfig gDEFAULT_UARTClockConfig = {

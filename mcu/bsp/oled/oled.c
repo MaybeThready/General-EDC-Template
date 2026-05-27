@@ -81,13 +81,7 @@ bool oled_is_in_angle(int16_t x, int16_t y, int16_t start_angle, int16_t end_ang
 
 void oled_clear()
 {
-	for (uint8_t i = 0; i < OLED_HEIGHT / 8; i++)
-	{
-		for (uint8_t j = 0; j < OLED_WIDTH; j++)
-		{
-			oled_display_buffer[i][j] = 0x00;
-		}
-	}
+	memset(oled_display_buffer, 0x00, sizeof(oled_display_buffer));
 }
 
 void oled_clear_area(int16_t x, int16_t y, int16_t width, int16_t height)
@@ -432,36 +426,36 @@ void oled_show_chinese(int16_t x, int16_t y, char* str, uint8_t size)
 
 			if (size == OLED_8X8_FULL)
 			{
-				for (p_index = 0; strcmp(((const ChineseCell8x8*)font_array)[p_index].Index, "") != 0; p_index++)
+				for (p_index = 0; strcmp(((const ChineseCell8x8*)font_array)[p_index].index, "") != 0; p_index++)
 				{
-					if (strcmp(((const ChineseCell8x8*)font_array)[p_index].Index, single_chinese) == 0)
+					if (strcmp(((const ChineseCell8x8*)font_array)[p_index].index, single_chinese) == 0)
 					{
 						break;
 					}
 				}
-				oled_show_image(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_8X8_FULL, y, OLED_8X8_FULL, OLED_8X8_FULL, ((const ChineseCell8x8*)font_array)[p_index].Data);
+				oled_show_image(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_8X8_FULL, y, OLED_8X8_FULL, OLED_8X8_FULL, ((const ChineseCell8x8*)font_array)[p_index].data);
 			}
 			else if (size == OLED_12X12_FULL)
 			{
-				for (p_index = 0; strcmp(((const ChineseCell12x12*)font_array)[p_index].Index, "") != 0; p_index++)
+				for (p_index = 0; strcmp(((const ChineseCell12x12*)font_array)[p_index].index, "") != 0; p_index++)
 				{
-					if (strcmp(((const ChineseCell12x12*)font_array)[p_index].Index, single_chinese) == 0)
+					if (strcmp(((const ChineseCell12x12*)font_array)[p_index].index, single_chinese) == 0)
 					{
 						break;
 					}
 				}
-				oled_show_image(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_12X12_FULL, y, OLED_12X12_FULL, OLED_12X12_FULL, ((const ChineseCell12x12*)font_array)[p_index].Data);
+				oled_show_image(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_12X12_FULL, y, OLED_12X12_FULL, OLED_12X12_FULL, ((const ChineseCell12x12*)font_array)[p_index].data);
 			}
 			else if (size == OLED_16X16_FULL)
 			{
-				for (p_index = 0; strcmp(((const ChineseCell16x16*)font_array)[p_index].Index, "") != 0; p_index++)
+				for (p_index = 0; strcmp(((const ChineseCell16x16*)font_array)[p_index].index, "") != 0; p_index++)
 				{
-					if (strcmp(((const ChineseCell16x16*)font_array)[p_index].Index, single_chinese) == 0)
+					if (strcmp(((const ChineseCell16x16*)font_array)[p_index].index, single_chinese) == 0)
 					{
 						break;
 					}
 				}
-				oled_show_image(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_16X16_FULL, y, OLED_16X16_FULL, OLED_16X16_FULL, ((const ChineseCell16x16*)font_array)[p_index].Data);
+				oled_show_image(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_16X16_FULL, y, OLED_16X16_FULL, OLED_16X16_FULL, ((const ChineseCell16x16*)font_array)[p_index].data);
 			}
 			else if (size == OLED_20X20_FULL)
 			{
@@ -619,36 +613,36 @@ void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, 
 
 			if (size == OLED_8X8_FULL)
 			{
-				for (p_index = 0; strcmp(((const ChineseCell8x8*)font_array)[p_index].Index, "") != 0; p_index++)
+				for (p_index = 0; strcmp(((const ChineseCell8x8*)font_array)[p_index].index, "") != 0; p_index++)
 				{
-					if (strcmp(((const ChineseCell8x8*)font_array)[p_index].Index, single_chinese) == 0)
+					if (strcmp(((const ChineseCell8x8*)font_array)[p_index].index, single_chinese) == 0)
 					{
 						break;
 					}
 				}
-				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_8X8_FULL, y, OLED_8X8_FULL, OLED_8X8_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell8x8*)font_array)[p_index].Data);
+				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_8X8_FULL, y, OLED_8X8_FULL, OLED_8X8_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell8x8*)font_array)[p_index].data);
 			}
 			else if (size == OLED_12X12_FULL)
 			{
-				for (p_index = 0; strcmp(((const ChineseCell12x12*)font_array)[p_index].Index, "") != 0; p_index++)
+				for (p_index = 0; strcmp(((const ChineseCell12x12*)font_array)[p_index].index, "") != 0; p_index++)
 				{
-					if (strcmp(((const ChineseCell12x12*)font_array)[p_index].Index, single_chinese) == 0)
+					if (strcmp(((const ChineseCell12x12*)font_array)[p_index].index, single_chinese) == 0)
 					{
 						break;
 					}
 				}
-				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_12X12_FULL, y, OLED_12X12_FULL, OLED_12X12_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell12x12*)font_array)[p_index].Data);
+				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_12X12_FULL, y, OLED_12X12_FULL, OLED_12X12_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell12x12*)font_array)[p_index].data);
 			}
 			else if (size == OLED_16X16_FULL)
 			{
-				for (p_index = 0; strcmp(((const ChineseCell16x16*)font_array)[p_index].Index, "") != 0; p_index++)
+				for (p_index = 0; strcmp(((const ChineseCell16x16*)font_array)[p_index].index, "") != 0; p_index++)
 				{
-					if (strcmp(((const ChineseCell16x16*)font_array)[p_index].Index, single_chinese) == 0)
+					if (strcmp(((const ChineseCell16x16*)font_array)[p_index].index, single_chinese) == 0)
 					{
 						break;
 					}
 				}
-				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_16X16_FULL, y, OLED_16X16_FULL, OLED_16X16_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell16x16*)font_array)[p_index].Data);
+				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_16X16_FULL, y, OLED_16X16_FULL, OLED_16X16_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell16x16*)font_array)[p_index].data);
 			}
 			else if (size == OLED_20X20_FULL)
 			{
