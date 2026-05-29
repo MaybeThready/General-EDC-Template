@@ -20,6 +20,17 @@ Key* ui_key_incr = &keyboard_null_key;
 Key* ui_key_decr = &keyboard_null_key;
 Key* ui_key_scr_up = &keyboard_null_key;
 Key* ui_key_scr_down = &keyboard_null_key;
+Key* ui_key_0 = &keyboard_null_key;
+Key* ui_key_1 = &keyboard_null_key;
+Key* ui_key_2 = &keyboard_null_key;
+Key* ui_key_3 = &keyboard_null_key;
+Key* ui_key_4 = &keyboard_null_key;
+Key* ui_key_5 = &keyboard_null_key;
+Key* ui_key_6 = &keyboard_null_key;
+Key* ui_key_7 = &keyboard_null_key;
+Key* ui_key_8 = &keyboard_null_key;
+Key* ui_key_9 = &keyboard_null_key;
+Key* ui_key_point = &keyboard_null_key;
 
 /**
  *@brief 在菜单项数组中寻找下一个可选项，所谓可选项是指enter函数指针不为NULL的项
@@ -57,6 +68,58 @@ bool find_available_selection(UIWidget** items, uint8_t item_count, int16_t* sel
     } while (*selected_index != start_index);
 
     return false;
+}
+
+uint8_t get_digit_input()
+{
+    if (ui_key_0->signal_event == KEY_PRESS)
+    {
+        return 0;
+    }
+    else if (ui_key_1->signal_event == KEY_PRESS)
+    {
+        return 1;
+    }
+    else if (ui_key_2->signal_event == KEY_PRESS)
+    {
+        return 2;
+    }
+    else if (ui_key_3->signal_event == KEY_PRESS)
+    {
+        return 3;
+    }
+    else if (ui_key_4->signal_event == KEY_PRESS)
+    {
+        return 4;
+    }
+    else if (ui_key_5->signal_event == KEY_PRESS)
+    {
+        return 5;
+    }
+    else if (ui_key_6->signal_event == KEY_PRESS)
+    {
+        return 6;
+    }
+    else if (ui_key_7->signal_event == KEY_PRESS)
+    {
+        return 7;
+    }
+    else if (ui_key_8->signal_event == KEY_PRESS)
+    {
+        return 8;
+    }
+    else if (ui_key_9->signal_event == KEY_PRESS)
+    {
+        return 9;
+    }
+    else if (ui_key_point->signal_event == KEY_PRESS)
+    {
+        return UI_DIGIT_INPUT_POINT; // 返回10表示小数点被按下
+    }
+    else
+    {
+        return UI_NO_DIGIT_INPUT; // 返回255表示没有数字键被按下
+    }
 }
 
 /**
@@ -147,16 +210,16 @@ void ui_menu_render_items(UIMenu* menu)
 
     if (ui_current_window != NULL)
     {
-        if (ui_current_window->process_input != NULL)
-        {
-            ui_current_window->process_input(ui_current_window);
-        }
         ui_current_window->render(ui_current_window);
-        if (ui_current_window->is_exiting && !ui_current_window->base.should_move) // 等待弹窗动画结束后才真正退出弹窗
+        if (ui_current_window->is_exiting)
         {
-            ui_current_window->is_exiting = false;
-            ui_current_window = NULL;
-            ui_menu_update_cursor(menu); // 退出弹窗后更新菜单光标位置，确保光标在正确的选项上显示
+            ui_menu_update_cursor(menu); // 更新菜单光标位置，确保光标在正确的选项上显示
+
+            if (!ui_current_window->base.should_move)  // 只有在窗口完全停止移动后才销毁窗口并返回菜单
+            {
+                ui_current_window->is_exiting = false;
+                ui_current_window = NULL;
+            }
         }
     }
 
@@ -284,7 +347,11 @@ void ui_window_render_items(UIWindow* window)
         window->layout(window);
     }
 
-    if (window->process_input != NULL)
+    if (window->suppress_input_once)
+    {
+        window->suppress_input_once = false;
+    }
+    else if (window->process_input != NULL)
     {
         window->process_input(window);
     }
@@ -344,6 +411,7 @@ void ui_popup_button_enter(UIWidget* self)
 {
     UIPopupButton* button = container_of(self, UIPopupButton, base);
     ui_current_window = &button->window;
+    button->window.suppress_input_once = true;
 
     button->window.base.target_width = UI_WINDOW_WIDTH;
     button->window.base.target_height = UI_WINDOW_HEIGHT;
@@ -394,6 +462,189 @@ void ui_popup_button_window_process_input(UIWindow* window)
     }
 }
 
+void ui_input_box_double_render(UIWidget* self)
+{
+    UIInputBoxDouble* input_box = container_of(self, UIInputBoxDouble, base);
+    ui_popup_button_render(&input_box->base.base);
+
+    double display_value = input_box->value * input_box->coeff;
+    double abs_value = fabs(display_value);
+    uint8_t int_length = (display_value < 0 ? 1 : 0) + (abs_value < 1.0 ? 1 : (int)log10(abs_value) + 1);
+    uint8_t total_length = int_length + input_box->frac_length + 1 + !input_box->ignore_positive_sgn; // 数值的总长度（整数部分长度+小数部分长度+小数点+正负号）
+    uint8_t suffix_length = 0;
+
+    if (input_box->suffix != NULL && input_box->suffix_count > 0)
+    {
+        suffix_length = strlen(input_box->suffix[input_box->selected_suffix_index]);
+        oled_show_mix_string_area(
+            input_box->base.base.x,
+            input_box->base.base.y,
+            input_box->base.base.width,
+            input_box->base.base.height,
+            OLED_WIDTH - UI_H_MARGIN - suffix_length * ui_ascii_size,
+            input_box->base.base.y,
+            input_box->suffix[input_box->selected_suffix_index],
+            ui_chinese_size,
+            ui_ascii_size
+        );
+    }
+
+    oled_show_float_num_area(
+        input_box->base.base.x,
+        input_box->base.base.y,
+        input_box->base.base.width,
+        input_box->base.base.height,
+        OLED_WIDTH - UI_H_MARGIN - 1 - total_length * ui_ascii_size - suffix_length * ui_ascii_size - ui_ascii_size, // 数值右对齐，留出UI_H_MARGIN的右边距
+        input_box->base.base.y,
+        display_value,
+        int_length,
+        input_box->frac_length,
+        input_box->ignore_positive_sgn,
+        ui_ascii_size
+    );
+}
+
+void ui_input_box_double_update_cursor(UIInputBoxDouble* input_box)
+{
+    double display_value = input_box->edit_value * input_box->coeff;
+    double abs_value = fabs(display_value);
+    uint8_t int_length = (display_value < 0 ? 1 : 0) + (abs_value < 1.0 ? 1 : (int)log10(abs_value) + 1);
+
+    ui_cursor.target_x = input_box->base.window.base.x + UI_H_MARGIN + 1;
+    ui_cursor.target_y = input_box->base.window.base.y + UI_H_MARGIN + 1 + ui_font_height + UI_V_MARGIN / 2;
+    ui_cursor.target_width = (int16_t)((int_length + input_box->frac_length + 1 + !input_box->ignore_positive_sgn) * ui_ascii_size) + UI_H_MARGIN; // 光标宽度略大于数值显示区域，留出一些余量
+    ui_cursor.target_height = (int16_t)ui_font_height + UI_V_MARGIN;
+    ui_cursor.should_move = true;
+}
+
+void ui_input_box_double_enter(UIWidget* self)
+{
+    UIInputBoxDouble* input_box = container_of(self, UIInputBoxDouble, base);
+    ui_popup_button_enter(&input_box->base.base);
+
+    input_box->edit_value = input_box->value;
+    input_box->frac_pos = 0;
+    ui_input_box_double_update_cursor(input_box);
+    input_box->state = UI_INPUT_BOX_IDLE; // 进入编辑整数部分状态
+}
+
+void ui_input_box_double_window_render_items(UIWindow* self)
+{
+    UIInputBoxDouble* input_box = container_of(self, UIInputBoxDouble, base.window);
+
+    ui_popup_button_window_render_items(&input_box->base.window);
+    double display_value = input_box->edit_value * input_box->coeff;
+    double abs_value = fabs(display_value);
+    uint8_t int_length = (display_value < 0 ? 1 : 0) + (abs_value < 1.0 ? 1 : (int)log10(abs_value) + 1);
+
+    oled_show_float_num_area(
+        input_box->base.window.base.x,
+        input_box->base.window.base.y,
+        input_box->base.window.base.width,
+        input_box->base.window.base.height,
+        (int16_t)(input_box->base.window.base.x + UI_H_MARGIN + 1),
+        (int16_t)(input_box->base.window.base.y + UI_H_MARGIN + 1 + ui_font_height + UI_V_MARGIN), // 数值行在标题下方，间隔UI_V_MARGIN
+        display_value,
+        int_length,
+        input_box->frac_length,
+        input_box->ignore_positive_sgn,
+        ui_ascii_size
+    );
+
+    if (input_box->suffix != NULL && input_box->suffix_count > 0)
+    {
+        oled_show_mix_string_area(
+            input_box->base.window.base.x,
+            input_box->base.window.base.y,
+            input_box->base.window.base.width,
+            input_box->base.window.base.height,
+            (int16_t)(input_box->base.window.base.x + UI_H_MARGIN + 1 + (int_length + input_box->frac_length + 2 + !input_box->ignore_positive_sgn) * ui_ascii_size), // 后缀紧跟在数值后面
+            (int16_t)(input_box->base.window.base.y + UI_H_MARGIN + 1 + ui_font_height + UI_V_MARGIN), // 数值行在标题下方，间隔UI_V_MARGIN
+            input_box->suffix[input_box->selected_suffix_index],
+            ui_chinese_size,
+            ui_ascii_size
+        );
+    }
+}
+
+void ui_input_box_double_window_process_input(UIWindow* self)
+{
+    UIInputBoxDouble* input_box = container_of(self, UIInputBoxDouble, base.window);
+    if (ui_key_back->signal_event == KEY_PRESS)
+    {
+        input_box->edit_value = input_box->value;
+        input_box->frac_pos = 0;
+        input_box->state = UI_INPUT_BOX_IDLE;
+        ui_popup_button_window_process_input(&input_box->base.window);
+        return;
+    }
+
+    ui_popup_button_window_process_input(&input_box->base.window);
+
+    uint8_t digit = get_digit_input();
+    switch (input_box->state)
+    {
+    case UI_INPUT_BOX_IDLE:
+        if (digit != UI_NO_DIGIT_INPUT)
+        {
+            input_box->edit_value = (double)((digit == UI_DIGIT_INPUT_POINT) ? 0.0 : digit) / input_box->coeff; // 将输入的数字转换为实际值
+            if (digit == UI_DIGIT_INPUT_POINT)
+            {
+                input_box->frac_pos = 0;
+                input_box->state = UI_INPUT_BOX_EDITING_FRAC;
+            }
+            else
+            {
+                input_box->frac_pos = 0;
+                input_box->state = UI_INPUT_BOX_EDITING_INT;
+            }
+            ui_input_box_double_update_cursor(input_box);
+        }
+        break;
+
+    case UI_INPUT_BOX_EDITING_INT:
+        if (digit != UI_NO_DIGIT_INPUT && digit != UI_DIGIT_INPUT_POINT)
+        {
+            input_box->edit_value = input_box->edit_value * 10 + (double)digit / input_box->coeff; // 将输入的数字转换为实际值并添加到整数部分
+            ui_input_box_double_update_cursor(input_box);
+        }
+        else if (digit == UI_DIGIT_INPUT_POINT)
+        {
+            input_box->frac_pos = 0;
+            input_box->state = UI_INPUT_BOX_EDITING_FRAC;
+            ui_input_box_double_update_cursor(input_box);
+        }
+        break;
+
+    case UI_INPUT_BOX_EDITING_FRAC:
+        if (digit != UI_NO_DIGIT_INPUT && digit != UI_DIGIT_INPUT_POINT)
+        {
+            if (input_box->frac_pos < input_box->frac_length)
+            {
+                input_box->frac_pos++;
+                input_box->edit_value += (double)digit / input_box->coeff * pow(10.0, -(double)input_box->frac_pos);
+                ui_input_box_double_update_cursor(input_box);
+            }
+        }
+        break;
+    }
+
+    if (ui_key_enter->signal_event == KEY_PRESS)
+    {
+        input_box->value = input_box->edit_value;
+        input_box->frac_pos = 0;
+        if (input_box->on_value_changed != NULL)
+        {
+            input_box->on_value_changed(input_box->value);
+        }
+        input_box->state = UI_INPUT_BOX_IDLE;
+        input_box->base.window.base.target_width = 0.f;
+        input_box->base.window.base.target_height = 0.f;
+        input_box->base.window.is_exiting = true;
+        input_box->base.window.base.should_move = true;
+    }
+}
+
 /**
  *@brief UIWidget成员函数：初始化控件基类
  *
@@ -432,6 +683,7 @@ void init_ui_window(UIWindow* window, const char* title)
     window->base.enter = NULL;
     window->title = title;
     window->is_exiting = false;
+    window->suppress_input_once = false;
     window->render = ui_window_render_items;
     window->layout = NULL; // 需要自定义布局函数
     window->process_input = NULL; // 需要自定义输入处理函数
@@ -499,6 +751,28 @@ void init_ui_popup_button(UIPopupButton* button, const char* text)
 
     button->base.render = ui_popup_button_render;
     button->base.enter = ui_popup_button_enter;
+}
+
+void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed)
+{
+    init_ui_popup_button(&input_box->base, title);
+    input_box->base.base.enter = ui_input_box_double_enter;
+    input_box->base.base.render = ui_input_box_double_render;
+    init_ui_window(&input_box->base.window, title);
+    input_box->base.window.render = ui_input_box_double_window_render_items;
+    input_box->base.window.process_input = ui_input_box_double_window_process_input;
+
+    input_box->value = initial_value;
+    input_box->edit_value = initial_value;
+    input_box->frac_pos = 0;
+    input_box->suffix = suffix;
+    input_box->suffix_count = suffix_count;
+    input_box->coeff = 1.0;
+    input_box->selected_suffix_index = 0;
+    input_box->frac_length = frac_length;
+    input_box->ignore_positive_sgn = ignore_positive_sgn;
+    input_box->state = UI_INPUT_BOX_IDLE;
+    input_box->on_value_changed = on_value_changed;
 }
 
 /**

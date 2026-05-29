@@ -26,8 +26,10 @@
 #define UI_WINDOW_WIDTH (OLED_WIDTH - 4)
 #define UI_WINDOW_HEIGHT (OLED_HEIGHT - ui_font_height - 8)
 #define UI_EPSILON (0.5f)
+#define UI_NO_DIGIT_INPUT (255)
+#define UI_DIGIT_INPUT_POINT (10)
 
-typedef void (*VoidCallbackFunc)(void);
+typedef void (*DoubleChangeCallbackFunc)(double value);
 
 // UI控件基类
 typedef struct UIWidget
@@ -55,6 +57,7 @@ typedef struct UIWindow
     UIWidget base;
     const char* title;
     bool is_exiting;
+    bool suppress_input_once;
     void (*render)(struct UIWindow* window);
     void (*layout)(struct UIWindow* window);
     void (*process_input)(struct UIWindow* window);
@@ -86,6 +89,29 @@ typedef struct UIPopupButton
     UIWindow window;
 } UIPopupButton;
 
+typedef enum
+{
+    UI_INPUT_BOX_IDLE,
+    UI_INPUT_BOX_EDITING_INT,
+    UI_INPUT_BOX_EDITING_FRAC,
+} UIInputBoxState;
+
+typedef struct UIInputBoxDouble
+{
+    UIPopupButton base;
+    double value;
+    double edit_value;
+    uint8_t frac_pos;
+    double coeff;  // 对于不同单位，显示的数值可能需要乘以不同的系数。注意这个是从实际值到显示值的系数，即显示值 = 实际值 * coeff
+    const char** suffix;
+    uint8_t suffix_count;
+    uint8_t selected_suffix_index;
+    uint32_t frac_length;
+    bool ignore_positive_sgn;  // 是否在显示正数时忽略+号
+    UIInputBoxState state;
+    DoubleChangeCallbackFunc on_value_changed;
+} UIInputBoxDouble;
+
 /**
  * @brief 初始化菜单
  *
@@ -98,7 +124,7 @@ void init_ui_menu(UIMenu* menu, const char* title, UIWidget** items, uint8_t ite
 
 /**
  *@brief 初始化标签
- * 
+ *
  * @param label 标签对象指针
  * @param text 标签文本
  */
@@ -106,11 +132,13 @@ void init_ui_label(UILabel* label, const char* text);
 
 /**
  *@brief 初始化弹窗按钮
- * 
+ *
  * @param button 弹窗按钮对象指针
  * @param text 按钮文本（也是弹窗标题）
  */
 void init_ui_popup_button(UIPopupButton* button, const char* text);
+
+void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed);
 
 extern UIMenu* ui_main_menu;  // 主菜单，程序启动后显示的默认菜单
 extern UIWindow* ui_current_window;  // 当前活动的窗口，如果不为NULL则显示该窗口并优先处理其输入，直到窗口退出后才会继续显示菜单
@@ -129,19 +157,30 @@ extern Key* ui_key_incr;  // 菜单增大选择键
 extern Key* ui_key_decr;  // 菜单减小选择键
 extern Key* ui_key_scr_up;  // 菜单滚屏向上键
 extern Key* ui_key_scr_down;  // 菜单滚屏向下键
+extern Key* ui_key_0;
+extern Key* ui_key_1;
+extern Key* ui_key_2;
+extern Key* ui_key_3;
+extern Key* ui_key_4;
+extern Key* ui_key_5;
+extern Key* ui_key_6;
+extern Key* ui_key_7;
+extern Key* ui_key_8;
+extern Key* ui_key_9;
+extern Key* ui_key_point;
 
 extern uint32_t ui_update_delta;  // 上次更新到现在的时间差，单位为系统时钟节拍数
 extern uint32_t ui_last_update_tick;  // 上次更新的系统时钟节拍数
 
 /**
  *@brief 更新UI显示，应该在主循环中定期调用以刷新UI界面
- * 
+ *
  */
 void ui_update();
 
 /**
  *@brief 更改UI字体大小，调用后会立即生效并更新界面布局
- * 
+ *
  * @param ascii_size 新的ASCII字符字体大小，单位为像素宽度，必须是OLEDFontSizeHalf枚举值之一
  * @param chinese_size 新的中文字符字体大小，单位为像素宽度，必须是OLEDFontSizeFull枚举值之一
  */

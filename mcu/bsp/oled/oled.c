@@ -686,6 +686,55 @@ void oled_show_mix_string_area(int16_t area_x, int16_t area_y, int16_t area_widt
 	}
 }
 
+void oled_show_num_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, uint32_t num, uint8_t length, OLEDFontSizeHalf size)
+{
+	uint8_t i;
+	for (i = 0; i < length; i++)		//遍历数字的每一位
+	{
+		oled_show_char_area(area_x, area_y, area_width, area_height, x + i * size, y, num / oled_pow(10, length - i - 1) % 10 + '0', size);
+	}
+}
+
+void oled_show_float_num_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, double num, uint8_t int_length, uint8_t frac_length, bool ignore_positive_sgn, OLEDFontSizeHalf size)
+{
+	uint32_t pow_num;
+	uint32_t int_num;
+	uint32_t frac_num;
+
+	if (num >= 0)						//数字大于等于0
+	{
+		if (!ignore_positive_sgn)
+		{
+			oled_show_char_area(area_x, area_y, area_width, area_height, x, y, '+', size);	//显示+号
+		}
+		else
+		{
+			x -= size;	//不显示+号时，数字整体左移一个字符的位置，以保持和负数的对齐
+		}
+	}
+	else									//数字小于0
+	{
+		oled_show_char_area(area_x, area_y, area_width, area_height, x, y, '-', size);	//显示-号
+		num = -num;					//num取负
+	}
+
+	/*提取整数部分和小数部分*/
+	int_num = num;						//直接赋值给整型变量，提取整数
+	num -= int_num;						//将num的整数减掉，防止之后将小数乘到整数时因数过大造成错误
+	pow_num = oled_pow(10, frac_length);		//根据指定小数的位数，确定乘数
+	frac_num = round(num * pow_num);		//将小数乘到整数，同时四舍五入，避免显示误差
+	int_num += frac_num / pow_num;				//若四舍五入造成了进位，则需要再加给整数
+
+	/*显示整数部分*/
+	oled_show_num_area(area_x, area_y, area_width, area_height, x + size, y, int_num, int_length, size);
+
+	/*显示小数点*/
+	oled_show_char_area(area_x, area_y, area_width, area_height, x + (int_length + 1) * size, y, '.', size);
+
+	/*显示小数部分*/
+	oled_show_num_area(area_x, area_y, area_width, area_height, x + (int_length + 2) * size, y, frac_num, frac_length, size);
+}
+
 void oled_draw_point(int16_t x, int16_t y)
 {
 	/*参数检查，保证指定位置不会超出屏幕范围*/

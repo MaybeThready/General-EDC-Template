@@ -243,6 +243,37 @@ void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, 
 void oled_show_mix_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, const char* string, OLEDFontSizeFull chinese_size, OLEDFontSizeHalf ascii_size);
 
 /**
+ *@brief 在指定区域内显示无符号整数
+ * 
+ * @param area_x 区域左上角x坐标
+ * @param area_y 区域左上角y坐标
+ * @param area_width 区域宽度
+ * @param area_height 区域高度
+ * @param x 显示内容的左上角x坐标
+ * @param y 显示内容的左上角y坐标
+ * @param num 要显示的无符号整数
+ * @param length 数字的长度，即显示多少位
+ * @param size 数字大小，只能为半角字符大小
+ */
+void oled_show_num_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, uint32_t num, uint8_t length, OLEDFontSizeHalf size);
+
+/**
+ *@brief 在指定区域内显示浮点数
+ * 
+ * @param area_x 区域左上角x坐标
+ * @param area_y 区域左上角y坐标
+ * @param area_width 区域宽度
+ * @param area_height 区域高度
+ * @param x 显示内容的左上角x坐标
+ * @param y 显示内容的左上角y坐标
+ * @param num 要显示的浮点数
+ * @param int_length 整数部分的长度
+ * @param frac_length 小数部分的长度
+ * @param size 数字大小，只能为半角字符大小
+ */
+void oled_show_float_num_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, double num, uint8_t int_length, uint8_t frac_length, bool ignore_positive_sgn, OLEDFontSizeHalf size);
+
+/**
  *@brief 绘制点
  * 
  * @param x 点的x坐标
