@@ -264,7 +264,7 @@ void oled_show_image(int16_t x, int16_t y, int16_t width, int16_t height, const 
 	}
 }
 
-void oled_show_char(int16_t x, int16_t y, char chr, uint8_t size)
+void oled_show_char(int16_t x, int16_t y, char chr, OLEDFontSizeHalf size)
 {
 	if (size == OLED_8X16_HALF)		//字体为宽8像素，高16像素
 	{
@@ -288,7 +288,7 @@ void oled_show_char(int16_t x, int16_t y, char chr, uint8_t size)
 	}
 }
 
-void oled_show_num(int16_t x, int16_t y, uint32_t num, uint8_t length, uint8_t size)
+void oled_show_num(int16_t x, int16_t y, uint32_t num, uint8_t length, OLEDFontSizeHalf size)
 {
 	uint8_t i;
 	for (i = 0; i < length; i++)		//遍历数字的每一位
@@ -297,7 +297,7 @@ void oled_show_num(int16_t x, int16_t y, uint32_t num, uint8_t length, uint8_t s
 	}
 }
 
-void oled_show_signed_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_t size)
+void oled_show_signed_num(int16_t x, int16_t y, int32_t num, uint8_t length, OLEDFontSizeHalf size)
 {
 	uint8_t i;
 	uint32_t unsigned_num;
@@ -319,7 +319,7 @@ void oled_show_signed_num(int16_t x, int16_t y, int32_t num, uint8_t length, uin
 	}
 }
 
-void oled_show_hex_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_t size)
+void oled_show_hex_num(int16_t x, int16_t y, int32_t num, uint8_t length, OLEDFontSizeHalf size)
 {
 	uint8_t i;
 	uint8_t single_num;
@@ -339,7 +339,7 @@ void oled_show_hex_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_
 	}
 }
 
-void oled_show_bin_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_t size)
+void oled_show_bin_num(int16_t x, int16_t y, int32_t num, uint8_t length, OLEDFontSizeHalf size)
 {
 	uint8_t i;
 	for (i = 0; i < length; i++)		//遍历数字的每一位
@@ -348,7 +348,7 @@ void oled_show_bin_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_
 	}
 }
 
-void oled_show_float_num(int16_t x, int16_t y, double num, uint8_t int_length, uint8_t frac_length, uint8_t size)
+void oled_show_float_num(int16_t x, int16_t y, double num, uint8_t int_length, uint8_t frac_length, OLEDFontSizeHalf size)
 {
 	uint32_t pow_num;
 	uint32_t int_num;
@@ -381,7 +381,7 @@ void oled_show_float_num(int16_t x, int16_t y, double num, uint8_t int_length, u
 	oled_show_num(x + (int_length + 2) * size, y, frac_num, frac_length, size);
 }
 
-void oled_show_string(int16_t x, int16_t y, char* str, uint8_t size)
+void oled_show_string(int16_t x, int16_t y, const char* str, OLEDFontSizeHalf size)
 {
 	uint8_t i;
 	for (i = 0; str[i] != '\0'; i++)		//遍历字符串的每个字符
@@ -391,7 +391,7 @@ void oled_show_string(int16_t x, int16_t y, char* str, uint8_t size)
 	}
 }
 
-void oled_show_chinese(int16_t x, int16_t y, char* str, uint8_t size)
+void oled_show_chinese(int16_t x, int16_t y, const char* str, OLEDFontSizeFull size)
 {
 	uint8_t p_chinese = 0;
 	uint8_t p_index;
@@ -472,7 +472,7 @@ void oled_show_chinese(int16_t x, int16_t y, char* str, uint8_t size)
 	}
 }
 
-void oled_show_mix_string(int16_t x, int16_t y, char* str, uint8_t chinese_size, uint8_t ascii_size)
+void oled_show_mix_string(int16_t x, int16_t y, const char* str, OLEDFontSizeFull chinese_size, OLEDFontSizeHalf ascii_size)
 {
 	while (*str != '\0')
 	{
@@ -543,32 +543,32 @@ void oled_show_image_area(int16_t area_x, int16_t area_y, int16_t area_width, in
 	}
 }
 
-void oled_show_char_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char chr, uint8_t size)
+void oled_show_char_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char chr, OLEDFontSizeHalf size)
 {
 
 	if (size == OLED_8X16_HALF)		//字体为宽8像素，高16像素
 	{
 		/*将ASCII字模库OLED_F8x16的指定数据以8*16的图像格式显示*/
-		oled_show_image_area(x, y, 8, 16, area_x, area_y, area_width, area_height, OLED_F8x16[chr - ' ']);
+		oled_show_image_area(area_x, area_y, area_width, area_height, x, y, 8, 16, OLED_F8x16[chr - ' ']);
 	}
 	else if (size == OLED_6X8_HALF)	//字体为宽6像素，高8像素
 	{
 		/*将ASCII字模库OLED_F6x8的指定数据以6*8的图像格式显示*/
-		oled_show_image_area(x, y, 6, 8, area_x, area_y, area_width, area_height, OLED_F6x8[chr - ' ']);
+		oled_show_image_area(area_x, area_y, area_width, area_height, x, y, 6, 8, OLED_F6x8[chr - ' ']);
 	}
 	else if (size == OLED_7X12_HALF)	//字体为宽6像素，高8像素
 	{
 		/*将ASCII字模库OLED_F7X12的指定数据以6*8的图像格式显示*/
-		oled_show_image_area(x, y, 7, 12, area_x, area_y, area_width, area_height, OLED_F7x12[chr - ' ']);
+		oled_show_image_area(area_x, area_y, area_width, area_height, x, y, 7, 12, OLED_F7x12[chr - ' ']);
 	}
 	else if (size == OLED_10X20_HALF)
 	{
 		/*将ASCII字模库OLED_F10x20的指定数据以6*8的图像格式显示*/
-		oled_show_image_area(x, y, 10, 20, area_x, area_y, area_width, area_height, OLED_F10x20[chr - ' ']);
+		oled_show_image_area(area_x, area_y, area_width, area_height, x, y, 10, 20, OLED_F10x20[chr - ' ']);
 	}
 }
 
-void oled_show_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char* string, uint8_t size)
+void oled_show_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, const char* string, uint8_t size)
 {
 	/*由于有可能显示极长的字符串，所以uint16_t*/
 	uint16_t i;
@@ -579,7 +579,7 @@ void oled_show_string_area(int16_t area_x, int16_t area_y, int16_t area_width, i
 	}
 }
 
-void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char* chinese, uint8_t size)
+void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, const char* chinese, OLEDFontSizeFull size)
 {
 	uint8_t p_chinese = 0;
 	uint8_t p_index;
@@ -620,7 +620,7 @@ void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, 
 						break;
 					}
 				}
-				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_8X8_FULL, y, OLED_8X8_FULL, OLED_8X8_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell8x8*)font_array)[p_index].data);
+				oled_show_image_area(area_x, area_y, area_width, area_height, x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_8X8_FULL, y, OLED_8X8_FULL, OLED_8X8_FULL, ((const ChineseCell8x8*)font_array)[p_index].data);
 			}
 			else if (size == OLED_12X12_FULL)
 			{
@@ -631,7 +631,7 @@ void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, 
 						break;
 					}
 				}
-				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_12X12_FULL, y, OLED_12X12_FULL, OLED_12X12_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell12x12*)font_array)[p_index].data);
+				oled_show_image_area(area_x, area_y, area_width, area_height, x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_12X12_FULL, y, OLED_12X12_FULL, OLED_12X12_FULL, ((const ChineseCell12x12*)font_array)[p_index].data);
 			}
 			else if (size == OLED_16X16_FULL)
 			{
@@ -642,7 +642,7 @@ void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, 
 						break;
 					}
 				}
-				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_16X16_FULL, y, OLED_16X16_FULL, OLED_16X16_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell16x16*)font_array)[p_index].data);
+				oled_show_image_area(area_x, area_y, area_width, area_height, x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_16X16_FULL, y, OLED_16X16_FULL, OLED_16X16_FULL, ((const ChineseCell16x16*)font_array)[p_index].data);
 			}
 			else if (size == OLED_20X20_FULL)
 			{
@@ -653,13 +653,13 @@ void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, 
 						break;
 					}
 				}
-				oled_show_image_area(x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_20X20_FULL, y, OLED_20X20_FULL, OLED_20X20_FULL, area_x, area_y, area_width, area_height, ((const ChineseCell20x20*)font_array)[p_index].data);
+				oled_show_image_area(area_x, area_y, area_width, area_height, x + ((i + 1) / OLED_CHN_CHAR_WIDTH - 1) * OLED_20X20_FULL, y, OLED_20X20_FULL, OLED_20X20_FULL, ((const ChineseCell20x20*)font_array)[p_index].data);
 			}
 		}
 	}
 }
 
-void oled_show_mix_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char* string, uint8_t chinese_size, uint8_t ascii_size)
+void oled_show_mix_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, const char* string, OLEDFontSizeFull chinese_size, OLEDFontSizeHalf ascii_size)
 {
 	while (*string != '\0')
 	{

@@ -3,14 +3,15 @@
 #include "bsp/oled/oled.h"
 #include "bsp/keyboard.h"
 #include "bsp/led.h"
+#include "ui_config.h"
 #include <string.h>
-
 
 int main()
 {
     SYSCFG_DL_init();
     init_sys();
     init_oled();
+    init_ui();
     init_keyboard();
 
     char test_str[] = "Hello, World!";
@@ -26,8 +27,9 @@ int main()
         {
             strcpy(test_str, "Hello, World!");
         }
-        oled_show_string(0, 0, test_str, OLED_6X8_HALF);
-        oled_refresh();
+        // oled_show_string(0, 0, test_str, OLED_6X8_HALF);
+        // oled_refresh();
+        ui_update();
     }
 
     return 0;

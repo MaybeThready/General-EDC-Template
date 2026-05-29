@@ -76,6 +76,7 @@ extern const uint32_t KEYBOARD_DEBOUNCE_DELAY;                         // 键盘
 extern const char KEYBOARD_KEY_MAP[KEYBOARD_NUM_H][KEYBOARD_NUM_V];    // 键盘按键映射表
 
 extern Key keyboard_keys[KEYBOARD_NUM_H][KEYBOARD_NUM_V];  // 键盘按键数组
+extern Key keyboard_null_key;  // 用于返回无效按键事件的空按键对象
 
 /**
  *@brief 初始化键盘状态，设置按键映射表和初始事件状态

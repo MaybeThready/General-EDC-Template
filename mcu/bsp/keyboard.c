@@ -10,6 +10,7 @@ const uint32_t KEYBOARD_DEBOUNCE_DELAY = TIME_MS(20);
 const char KEYBOARD_KEY_MAP[KEYBOARD_NUM_H][KEYBOARD_NUM_V] = KEYBOARD_KEY_MAP_VALUES;
 
 Key keyboard_keys[KEYBOARD_NUM_H][KEYBOARD_NUM_V];
+Key keyboard_null_key = { .state_event = KEY_OFF, .signal_event = KEY_IDLE, .debounce_target = KEY_DEBOUNCE_PRESS, .debounce_tick = 0, .key_code = '\0', .is_debouncing = false };
 
 void init_keyboard()
 {

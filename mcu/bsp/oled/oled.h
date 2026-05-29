@@ -14,18 +14,21 @@
 #include "oled_driver.h"
 #include "oled_fonts.h"
 
-// 字符大小
-// HALF半角字符
-#define OLED_10X20_HALF			    (10)
-#define OLED_8X16_HALF			    (8)
-#define OLED_7X12_HALF			    (7)				
-#define OLED_6X8_HALF 			    (6)
+typedef enum
+{
+    OLED_10X20_HALF = 10,	// 半角字符，宽10像素，高20像素
+    OLED_8X16_HALF = 8,		// 半角字符，宽8像素，高16像素
+    OLED_7X12_HALF = 7,		// 半角字符，宽7像素，高12像素
+    OLED_6X8_HALF = 6,		// 半角字符，宽6像素，高8像素
+} OLEDFontSizeHalf;
 
-// FULL全角字符
-#define OLED_8X8_FULL			    (8)
-#define OLED_12X12_FULL			    (12)
-#define OLED_16X16_FULL			    (16)
-#define OLED_20X20_FULL			    (20)
+typedef enum
+{
+    OLED_8X8_FULL = 8,		// 全角字符，宽8像素，高8像素
+    OLED_12X12_FULL = 12,	// 全角字符，宽12像素，高12像素
+    OLED_16X16_FULL = 16,	// 全角字符，宽16像素，高16像素
+    OLED_20X20_FULL = 20,	// 全角字符，宽20像素，高20像素
+} OLEDFontSizeFull;
 
 /**
  * @brief 清空屏幕
@@ -78,7 +81,7 @@ void oled_show_image(int16_t x, int16_t y, int16_t width, int16_t height, const 
  * @param chr 要显示的ASCII字符
  * @param size 字符大小，只能为半角字符大小
  */
-void oled_show_char(int16_t x, int16_t y, char chr, uint8_t size);
+void oled_show_char(int16_t x, int16_t y, char chr, OLEDFontSizeHalf size);
 
 /**
  *@brief 显示无符号整数
@@ -89,7 +92,7 @@ void oled_show_char(int16_t x, int16_t y, char chr, uint8_t size);
  * @param length 数字的长度，即显示多少位
  * @param size 数字大小，只能为半角字符大小
  */
-void oled_show_num(int16_t x, int16_t y, uint32_t num, uint8_t length, uint8_t size);
+void oled_show_num(int16_t x, int16_t y, uint32_t num, uint8_t length, OLEDFontSizeHalf size);
 
 /**
  *@brief 显示有符号整数
@@ -100,7 +103,7 @@ void oled_show_num(int16_t x, int16_t y, uint32_t num, uint8_t length, uint8_t s
  * @param length 数字的长度，即显示多少位（不包括符号位）
  * @param size 数字大小，只能为半角字符大小
  */
-void oled_show_signed_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_t size);
+void oled_show_signed_num(int16_t x, int16_t y, int32_t num, uint8_t length, OLEDFontSizeHalf size);
 
 /**
  *@brief 显示十六进制数
@@ -111,7 +114,7 @@ void oled_show_signed_num(int16_t x, int16_t y, int32_t num, uint8_t length, uin
  * @param length 数字的长度，即显示多少位
  * @param size 数字大小，只能为半角字符大小
  */
-void oled_show_hex_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_t size);
+void oled_show_hex_num(int16_t x, int16_t y, int32_t num, uint8_t length, OLEDFontSizeHalf size);
 
 /**
  *@brief 显示二进制数
@@ -122,7 +125,7 @@ void oled_show_hex_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_
  * @param length 数字的长度，即显示多少位
  * @param size 数字大小，只能为半角字符大小
  */
-void oled_show_bin_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_t size);
+void oled_show_bin_num(int16_t x, int16_t y, int32_t num, uint8_t length, OLEDFontSizeHalf size);
 
 /**
  *@brief 显示浮点数
@@ -134,7 +137,7 @@ void oled_show_bin_num(int16_t x, int16_t y, int32_t num, uint8_t length, uint8_
  * @param frac_length 小数部分的长度
  * @param size 数字大小，只能为半角字符大小
  */
-void oled_show_float_num(int16_t x, int16_t y, double num, uint8_t int_length, uint8_t frac_length, uint8_t size);
+void oled_show_float_num(int16_t x, int16_t y, double num, uint8_t int_length, uint8_t frac_length, OLEDFontSizeHalf size);
 
 /**
  *@brief 显示字符串
@@ -144,7 +147,7 @@ void oled_show_float_num(int16_t x, int16_t y, double num, uint8_t int_length, u
  * @param str 要显示的字符串
  * @param size 字符大小，只能为半角字符大小
  */
-void oled_show_string(int16_t x, int16_t y, char* str, uint8_t size);
+void oled_show_string(int16_t x, int16_t y, const char* str, OLEDFontSizeHalf size);
 
 /**
  *@brief 显示混合字符串（中英文）
@@ -155,7 +158,7 @@ void oled_show_string(int16_t x, int16_t y, char* str, uint8_t size);
  * @param chinese_size 中文字符大小，只能为全角字符大小
  * @param ascii_size ASCII字符大小，只能为半角字符大小
  */
-void oled_show_mix_string(int16_t x, int16_t y, char* str, uint8_t chinese_size, uint8_t ascii_size);
+void oled_show_mix_string(int16_t x, int16_t y, const char* str, OLEDFontSizeFull chinese_size, OLEDFontSizeHalf ascii_size);
 
 /**
  *@brief 显示中文字符串
@@ -165,7 +168,7 @@ void oled_show_mix_string(int16_t x, int16_t y, char* str, uint8_t chinese_size,
  * @param str 要显示的中文字符串
  * @param size 字符大小，只能为全角字符大小
  */
-void oled_show_chinese(int16_t x, int16_t y, char* str, uint8_t size);
+void oled_show_chinese(int16_t x, int16_t y, const char* str, OLEDFontSizeFull size);
 
 /**
  *@brief 在指定区域内显示图像
@@ -194,7 +197,7 @@ void oled_show_image_area(int16_t area_x, int16_t area_y, int16_t area_width, in
  * @param chr 要显示的ASCII字符
  * @param size 字符大小，只能为半角字符大小
  */
-void oled_show_char_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char chr, uint8_t size);
+void oled_show_char_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char chr, OLEDFontSizeHalf size);
 
 /**
  *@brief 在指定区域内显示字符串
@@ -208,7 +211,7 @@ void oled_show_char_area(int16_t area_x, int16_t area_y, int16_t area_width, int
  * @param string 要显示的字符串
  * @param size 字符大小，只能为半角字符大小
  */
-void oled_show_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char* string, uint8_t size);
+void oled_show_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, const char* string, OLEDFontSizeHalf size);
 
 /**
  *@brief 在指定区域内显示中文字符串
@@ -222,7 +225,7 @@ void oled_show_string_area(int16_t area_x, int16_t area_y, int16_t area_width, i
  * @param chinese 要显示的中文字符串
  * @param size 字符大小，只能为全角字符大小
  */
-void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char* chinese, uint8_t size);
+void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, const char* chinese, OLEDFontSizeFull size);
 
 /**
  *@brief 在指定区域内显示混合字符串（中英文）
@@ -237,7 +240,7 @@ void oled_show_chinese_area(int16_t area_x, int16_t area_y, int16_t area_width, 
  * @param chinese_size 中文字符大小，只能为全角字符大小
  * @param ascii_size ASCII字符大小，只能为半角字符大小
  */
-void oled_show_mix_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, char* string, uint8_t chinese_size, uint8_t ascii_size);
+void oled_show_mix_string_area(int16_t area_x, int16_t area_y, int16_t area_width, int16_t area_height, int16_t x, int16_t y, const char* string, OLEDFontSizeFull chinese_size, OLEDFontSizeHalf ascii_size);
 
 /**
  *@brief 绘制点
