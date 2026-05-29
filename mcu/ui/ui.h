@@ -30,6 +30,8 @@
 #define UI_DIGIT_INPUT_POINT (10)
 
 typedef void (*DoubleChangeCallbackFunc)(double value);
+typedef void (*ChooseChangeCallbackFunc)(uint8_t index, const char* text);
+typedef void (*CheckboxChangeCallbackFunc)(bool checked);
 
 // UI控件基类
 typedef struct UIWidget
@@ -83,6 +85,14 @@ typedef struct UILabel
     const char* text;
 } UILabel;
 
+typedef struct UICheckbox
+{
+    UIWidget base;
+    const char* text;
+    bool checked;
+    CheckboxChangeCallbackFunc on_value_changed;
+} UICheckbox;
+
 typedef struct UIPopupButton
 {
     UIWidget base;
@@ -112,6 +122,21 @@ typedef struct UIInputBoxDouble
     DoubleChangeCallbackFunc on_value_changed;
 } UIInputBoxDouble;
 
+typedef struct UIChooseBox
+{
+    UIPopupButton base;
+    const char** options;
+    uint8_t option_count;
+    uint8_t selected_index;
+    uint8_t edit_index;
+    uint8_t display_index;
+    bool is_animating;
+    int8_t slide_dir;
+    UIWidget option_curr;
+    UIWidget option_next;
+    ChooseChangeCallbackFunc on_value_changed;
+} UIChooseBox;
+
 /**
  * @brief 初始化菜单
  *
@@ -119,6 +144,8 @@ typedef struct UIInputBoxDouble
  * @param title 菜单标题
  * @param items 菜单项数组
  * @param item_count 菜单项数量
+ * @note 传入的items需要在整个菜单生命周期内保持有效
+ * @note 仅enter不为NULL的项可被选择
  */
 void init_ui_menu(UIMenu* menu, const char* title, UIWidget** items, uint8_t item_count);
 
@@ -127,18 +154,61 @@ void init_ui_menu(UIMenu* menu, const char* title, UIWidget** items, uint8_t ite
  *
  * @param label 标签对象指针
  * @param text 标签文本
+ * @note text需在标签生命周期内保持有效
  */
 void init_ui_label(UILabel* label, const char* text);
+
+/**
+ *@brief 初始化复选框
+ *
+ * @param checkbox 复选框对象指针
+ * @param text 左侧显示文本
+ * @param initial_checked 初始选中状态
+ * @param on_value_changed 状态改变回调函数
+ * @note 复选框无弹窗，按确认键切换状态
+ * @note text需在复选框生命周期内保持有效
+ */
+void init_ui_checkbox(UICheckbox* checkbox, const char* text, bool initial_checked, CheckboxChangeCallbackFunc on_value_changed);
 
 /**
  *@brief 初始化弹窗按钮
  *
  * @param button 弹窗按钮对象指针
  * @param text 按钮文本（也是弹窗标题）
+ * @note 按下enter后会弹出窗口，back关闭窗口
+ * @note text需在弹窗生命周期内保持有效
  */
 void init_ui_popup_button(UIPopupButton* button, const char* text);
 
+/**
+ *@brief 初始化双精度输入框
+ *
+ * @param input_box 输入框对象指针
+ * @param title 输入框标题
+ * @param initial_value 初始值
+ * @param suffix 后缀字符串数组
+ * @param suffix_count 后缀数量
+ * @param frac_length 小数位数
+ * @param ignore_positive_sgn 是否忽略正号显示
+ * @param on_value_changed 按确认键后的回调
+ * @note 输入过程中修改的是临时值，只有按确认键才写回
+ * @note suffix数组及字符串需在输入框生命周期内保持有效
+ */
 void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed);
+
+/**
+ *@brief 初始化选择框
+ *
+ * @param choose_box 选择框对象指针
+ * @param title 选择框标题
+ * @param options 选项字符串数组
+ * @param option_count 选项数量
+ * @param initial_index 初始选中索引
+ * @param on_value_changed 按确认键后的回调
+ * @note 左右键切换选项，确认键保存，返回键取消
+ * @note options数组及字符串需在选择框生命周期内保持有效
+ */
+void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char** options, uint8_t option_count, uint8_t initial_index, ChooseChangeCallbackFunc on_value_changed);
 
 extern UIMenu* ui_main_menu;  // 主菜单，程序启动后显示的默认菜单
 extern UIWindow* ui_current_window;  // 当前活动的窗口，如果不为NULL则显示该窗口并优先处理其输入，直到窗口退出后才会继续显示菜单
@@ -175,6 +245,7 @@ extern uint32_t ui_last_update_tick;  // 上次更新的系统时钟节拍数
 /**
  *@brief 更新UI显示，应该在主循环中定期调用以刷新UI界面
  *
+ * @note 在调用前应确保已设置ui_main_menu及键位映射
  */
 void ui_update();
 
@@ -183,5 +254,6 @@ void ui_update();
  *
  * @param ascii_size 新的ASCII字符字体大小，单位为像素宽度，必须是OLEDFontSizeHalf枚举值之一
  * @param chinese_size 新的中文字符字体大小，单位为像素宽度，必须是OLEDFontSizeFull枚举值之一
+ * @note 改变字体后需重新布局菜单与窗口
  */
 void ui_change_font_size(OLEDFontSizeHalf ascii_size, OLEDFontSizeFull chinese_size);

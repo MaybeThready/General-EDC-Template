@@ -32,6 +32,10 @@ Key* ui_key_8 = &keyboard_null_key;
 Key* ui_key_9 = &keyboard_null_key;
 Key* ui_key_point = &keyboard_null_key;
 
+void init_ui_widget(UIWidget* widget);
+static uint16_t ui_text_width(const char* text);
+static uint8_t ui_calc_int_length(double display_value);
+
 /**
  *@brief 在菜单项数组中寻找下一个可选项，所谓可选项是指enter函数指针不为NULL的项
  *
@@ -42,7 +46,7 @@ Key* ui_key_point = &keyboard_null_key;
  * @return true 找到可选项并更新了selected_index
  * @return false 没有找到可选项，selected_index保持不变
  */
-bool find_available_selection(UIWidget** items, uint8_t item_count, int16_t* selected_index, bool forward)
+static bool find_available_selection(UIWidget** items, uint8_t item_count, int16_t* selected_index, bool forward)
 {
     if (items == NULL || item_count == 0 || selected_index == NULL)
     {
@@ -70,7 +74,12 @@ bool find_available_selection(UIWidget** items, uint8_t item_count, int16_t* sel
     return false;
 }
 
-uint8_t get_digit_input()
+/**
+ *@brief 获取数字输入键的瞬时事件
+ *
+ * @return uint8_t 数字键返回0~9，小数点返回UI_DIGIT_INPUT_POINT，无输入返回UI_NO_DIGIT_INPUT
+ */
+static uint8_t get_digit_input()
 {
     if (ui_key_0->signal_event == KEY_PRESS)
     {
@@ -120,6 +129,34 @@ uint8_t get_digit_input()
     {
         return UI_NO_DIGIT_INPUT; // 返回255表示没有数字键被按下
     }
+}
+
+/**
+ *@brief 计算字符串在当前ASCII字体下的显示宽度
+ *
+ * @param text 文本指针
+ * @return uint16_t 显示宽度（像素）
+ */
+static uint16_t ui_text_width(const char* text)
+{
+    if (text == NULL)
+    {
+        return 0;
+    }
+
+    return (uint16_t)(strlen(text) * ui_ascii_size);
+}
+
+/**
+ *@brief 计算数值显示所需的整数部分字符长度（包含负号）
+ *
+ * @param display_value 显示值
+ * @return uint8_t 整数部分字符长度
+ */
+static uint8_t ui_calc_int_length(double display_value)
+{
+    double abs_value = fabs(display_value);
+    return (uint8_t)((display_value < 0 ? 1 : 0) + (abs_value < 1.0 ? 1 : (int)log10(abs_value) + 1));
 }
 
 /**
@@ -381,6 +418,65 @@ void ui_label_render(UIWidget* self)
 }
 
 /**
+ *@brief UICheckbox成员函数：渲染复选框
+ *
+ * @param self UIWidget对象指针（指向UICheckbox.base）
+ */
+void ui_checkbox_render(UIWidget* self)
+{
+    UICheckbox* checkbox = container_of(self, UICheckbox, base);
+    int16_t box_size = (int16_t)(ui_font_height - 2);
+    if (box_size < 4)
+    {
+        box_size = 4;
+    }
+
+    int16_t box_x = (int16_t)(checkbox->base.x + checkbox->base.width - UI_H_MARGIN - box_size);
+    int16_t box_y = (int16_t)(checkbox->base.y + (checkbox->base.height - box_size) / 2);
+
+    oled_show_mix_string_area(
+        (int16_t)(checkbox->base.x),
+        (int16_t)(checkbox->base.y),
+        (int16_t)(checkbox->base.width),
+        (int16_t)(checkbox->base.height),
+        (int16_t)(checkbox->base.x),
+        (int16_t)(checkbox->base.y),
+        checkbox->text,
+        ui_chinese_size,
+        ui_ascii_size
+    );
+
+    oled_draw_rectangle(box_x, box_y, box_size, box_size, false);
+
+    if (checkbox->checked)
+    {
+        int16_t inner_size = (int16_t)(box_size - 4);
+        if (inner_size < 2)
+        {
+            inner_size = 2;
+        }
+        int16_t inner_x = (int16_t)(box_x + (box_size - inner_size) / 2);
+        int16_t inner_y = (int16_t)(box_y + (box_size - inner_size) / 2);
+        oled_draw_rectangle(inner_x, inner_y, inner_size, inner_size, true);
+    }
+}
+
+/**
+ *@brief UICheckbox成员函数：切换复选框状态
+ *
+ * @param self UIWidget对象指针（指向UICheckbox.base）
+ */
+void ui_checkbox_enter(UIWidget* self)
+{
+    UICheckbox* checkbox = container_of(self, UICheckbox, base);
+    checkbox->checked = !checkbox->checked;
+    if (checkbox->on_value_changed != NULL)
+    {
+        checkbox->on_value_changed(checkbox->checked);
+    }
+}
+
+/**
  *@brief UIPopupButton成员函数：渲染弹窗按钮的显示文本
  *
  * @param self UIWidget对象指针（指向UIPopupButton.base）
@@ -462,26 +558,30 @@ void ui_popup_button_window_process_input(UIWindow* window)
     }
 }
 
+/**
+ *@brief UIInputBoxDouble成员函数：渲染输入框在菜单中的显示
+ *
+ * @param self UIWidget对象指针（指向UIInputBoxDouble.base.base）
+ */
 void ui_input_box_double_render(UIWidget* self)
 {
     UIInputBoxDouble* input_box = container_of(self, UIInputBoxDouble, base);
     ui_popup_button_render(&input_box->base.base);
 
     double display_value = input_box->value * input_box->coeff;
-    double abs_value = fabs(display_value);
-    uint8_t int_length = (display_value < 0 ? 1 : 0) + (abs_value < 1.0 ? 1 : (int)log10(abs_value) + 1);
+    uint8_t int_length = ui_calc_int_length(display_value);
     uint8_t total_length = int_length + input_box->frac_length + 1 + !input_box->ignore_positive_sgn; // 数值的总长度（整数部分长度+小数部分长度+小数点+正负号）
-    uint8_t suffix_length = 0;
+    uint16_t suffix_length = 0;
 
     if (input_box->suffix != NULL && input_box->suffix_count > 0)
     {
-        suffix_length = strlen(input_box->suffix[input_box->selected_suffix_index]);
+        suffix_length = (uint8_t)ui_text_width(input_box->suffix[input_box->selected_suffix_index]);
         oled_show_mix_string_area(
             input_box->base.base.x,
             input_box->base.base.y,
             input_box->base.base.width,
             input_box->base.base.height,
-            OLED_WIDTH - UI_H_MARGIN - suffix_length * ui_ascii_size,
+            OLED_WIDTH - UI_H_MARGIN - suffix_length,
             input_box->base.base.y,
             input_box->suffix[input_box->selected_suffix_index],
             ui_chinese_size,
@@ -494,7 +594,7 @@ void ui_input_box_double_render(UIWidget* self)
         input_box->base.base.y,
         input_box->base.base.width,
         input_box->base.base.height,
-        OLED_WIDTH - UI_H_MARGIN - 1 - total_length * ui_ascii_size - suffix_length * ui_ascii_size - ui_ascii_size, // 数值右对齐，留出UI_H_MARGIN的右边距
+        OLED_WIDTH - UI_H_MARGIN - 1 - total_length * ui_ascii_size - suffix_length - ui_ascii_size, // 数值右对齐，留出UI_H_MARGIN的右边距
         input_box->base.base.y,
         display_value,
         int_length,
@@ -504,19 +604,47 @@ void ui_input_box_double_render(UIWidget* self)
     );
 }
 
+/**
+ *@brief UIInputBoxDouble成员函数：更新输入框的光标位置
+ *
+ * @param input_box UIInputBoxDouble对象指针
+ */
 void ui_input_box_double_update_cursor(UIInputBoxDouble* input_box)
 {
     double display_value = input_box->edit_value * input_box->coeff;
-    double abs_value = fabs(display_value);
-    uint8_t int_length = (display_value < 0 ? 1 : 0) + (abs_value < 1.0 ? 1 : (int)log10(abs_value) + 1);
+    uint8_t int_length = ui_calc_int_length(display_value);
+    uint8_t total_length = int_length + input_box->frac_length + 1 + !input_box->ignore_positive_sgn;
+    uint16_t suffix_length = 0;
+    uint16_t gap_length = 0;
+    int16_t window_width;
+    int16_t content_x;
 
-    ui_cursor.target_x = input_box->base.window.base.x + UI_H_MARGIN + 1;
+    if (input_box->suffix != NULL && input_box->suffix_count > 0)
+    {
+        suffix_length = ui_text_width(input_box->suffix[input_box->selected_suffix_index]);
+        gap_length = ui_ascii_size;
+    }
+
+    window_width = (int16_t)input_box->base.window.base.width;
+    if (input_box->base.window.base.target_width > window_width)
+    {
+        window_width = (int16_t)input_box->base.window.base.target_width;
+    }
+
+    content_x = (int16_t)(input_box->base.window.base.x + (window_width - (int16_t)(total_length * ui_ascii_size + gap_length + suffix_length)) / 2);
+
+    ui_cursor.target_x = content_x - UI_H_MARGIN;
     ui_cursor.target_y = input_box->base.window.base.y + UI_H_MARGIN + 1 + ui_font_height + UI_V_MARGIN / 2;
-    ui_cursor.target_width = (int16_t)((int_length + input_box->frac_length + 1 + !input_box->ignore_positive_sgn) * ui_ascii_size) + UI_H_MARGIN; // 光标宽度略大于数值显示区域，留出一些余量
+    ui_cursor.target_width = (int16_t)(total_length * ui_ascii_size) + UI_H_MARGIN * 2; // 光标宽度略大于数值显示区域，留出一些余量
     ui_cursor.target_height = (int16_t)ui_font_height + UI_V_MARGIN;
     ui_cursor.should_move = true;
 }
 
+/**
+ *@brief UIInputBoxDouble成员函数：进入输入框并初始化编辑状态
+ *
+ * @param self UIWidget对象指针（指向UIInputBoxDouble.base.base）
+ */
 void ui_input_box_double_enter(UIWidget* self)
 {
     UIInputBoxDouble* input_box = container_of(self, UIInputBoxDouble, base);
@@ -528,21 +656,45 @@ void ui_input_box_double_enter(UIWidget* self)
     input_box->state = UI_INPUT_BOX_IDLE; // 进入编辑整数部分状态
 }
 
+/**
+ *@brief UIInputBoxDouble成员函数：渲染输入框窗口内容
+ *
+ * @param self UIWindow对象指针（指向UIInputBoxDouble.base.window）
+ */
 void ui_input_box_double_window_render_items(UIWindow* self)
 {
     UIInputBoxDouble* input_box = container_of(self, UIInputBoxDouble, base.window);
 
     ui_popup_button_window_render_items(&input_box->base.window);
     double display_value = input_box->edit_value * input_box->coeff;
-    double abs_value = fabs(display_value);
-    uint8_t int_length = (display_value < 0 ? 1 : 0) + (abs_value < 1.0 ? 1 : (int)log10(abs_value) + 1);
+    uint8_t int_length = ui_calc_int_length(display_value);
+    uint8_t total_length = int_length + input_box->frac_length + 1 + !input_box->ignore_positive_sgn;
+    uint16_t suffix_length = 0;
+    uint16_t gap_length = 0;
+    int16_t window_width;
+    int16_t content_x;
+
+    if (input_box->suffix != NULL && input_box->suffix_count > 0)
+    {
+        suffix_length = ui_text_width(input_box->suffix[input_box->selected_suffix_index]);
+        gap_length = ui_ascii_size;
+
+    }
+
+    window_width = (int16_t)input_box->base.window.base.width;
+    if (input_box->base.window.base.target_width > window_width)
+    {
+        window_width = (int16_t)input_box->base.window.base.target_width;
+    }
+
+    content_x = (int16_t)(input_box->base.window.base.x + (window_width - (int16_t)(total_length * ui_ascii_size + gap_length + suffix_length)) / 2);
 
     oled_show_float_num_area(
         input_box->base.window.base.x,
         input_box->base.window.base.y,
         input_box->base.window.base.width,
         input_box->base.window.base.height,
-        (int16_t)(input_box->base.window.base.x + UI_H_MARGIN + 1),
+        content_x,
         (int16_t)(input_box->base.window.base.y + UI_H_MARGIN + 1 + ui_font_height + UI_V_MARGIN), // 数值行在标题下方，间隔UI_V_MARGIN
         display_value,
         int_length,
@@ -558,7 +710,7 @@ void ui_input_box_double_window_render_items(UIWindow* self)
             input_box->base.window.base.y,
             input_box->base.window.base.width,
             input_box->base.window.base.height,
-            (int16_t)(input_box->base.window.base.x + UI_H_MARGIN + 1 + (int_length + input_box->frac_length + 2 + !input_box->ignore_positive_sgn) * ui_ascii_size), // 后缀紧跟在数值后面
+            (int16_t)(content_x + total_length * ui_ascii_size + gap_length), // 后缀与数值间留一个空格
             (int16_t)(input_box->base.window.base.y + UI_H_MARGIN + 1 + ui_font_height + UI_V_MARGIN), // 数值行在标题下方，间隔UI_V_MARGIN
             input_box->suffix[input_box->selected_suffix_index],
             ui_chinese_size,
@@ -567,6 +719,11 @@ void ui_input_box_double_window_render_items(UIWindow* self)
     }
 }
 
+/**
+ *@brief UIInputBoxDouble成员函数：处理输入框窗口输入
+ *
+ * @param self UIWindow对象指针（指向UIInputBoxDouble.base.window）
+ */
 void ui_input_box_double_window_process_input(UIWindow* self)
 {
     UIInputBoxDouble* input_box = container_of(self, UIInputBoxDouble, base.window);
@@ -642,6 +799,259 @@ void ui_input_box_double_window_process_input(UIWindow* self)
         input_box->base.window.base.target_height = 0.f;
         input_box->base.window.is_exiting = true;
         input_box->base.window.base.should_move = true;
+    }
+}
+
+static const char* ui_choose_box_get_text(UIChooseBox* choose_box, uint8_t index)
+{
+    if (choose_box->options == NULL || choose_box->option_count == 0)
+    {
+        return "";
+    }
+
+    if (index >= choose_box->option_count)
+    {
+        index = 0;
+    }
+
+    return choose_box->options[index] != NULL ? choose_box->options[index] : "";
+}
+
+static int16_t ui_choose_box_get_content_y(UIWindow* window)
+{
+    return (int16_t)(window->base.y + UI_H_MARGIN + 1 + ui_font_height + UI_V_MARGIN);
+}
+
+static int16_t ui_choose_box_get_effective_width(UIWindow* window)
+{
+    float width = window->base.width;
+    if (window->base.target_width > width)
+    {
+        width = window->base.target_width;
+    }
+
+    return (int16_t)width;
+}
+
+static int16_t ui_choose_box_get_center_x(UIWindow* window, uint16_t text_width)
+{
+    int16_t width = ui_choose_box_get_effective_width(window);
+    return (int16_t)(window->base.x + (width - (int16_t)text_width) / 2);
+}
+
+static void ui_choose_box_set_widget_text(UIWidget* widget, int16_t x, int16_t y, uint16_t width)
+{
+    widget->target_x = x;
+    widget->target_y = y;
+    widget->target_width = width;
+    widget->target_height = ui_font_height;
+    widget->should_move = true;
+}
+
+static void ui_choose_box_start_slide(UIChooseBox* choose_box, int8_t dir, uint8_t next_index)
+{
+    UIWindow* window = &choose_box->base.window;
+    const char* next_text = ui_choose_box_get_text(choose_box, next_index);
+    uint16_t next_width = ui_text_width(next_text);
+    int16_t content_y = ui_choose_box_get_content_y(window);
+    int16_t center_x = ui_choose_box_get_center_x(window, next_width);
+    int16_t width = ui_choose_box_get_effective_width(window);
+
+    int16_t off_left = (int16_t)(window->base.x - (int16_t)next_width - UI_H_MARGIN);
+    int16_t off_right = (int16_t)(window->base.x + width + UI_H_MARGIN);
+    int16_t start_x = (dir > 0) ? off_right : off_left;
+    int16_t exit_x = (dir > 0) ? off_left : off_right;
+
+    choose_box->slide_dir = dir;
+    choose_box->is_animating = true;
+
+    choose_box->option_next.x = (float)start_x;
+    choose_box->option_next.y = (float)content_y;
+    choose_box->option_next.width = (float)next_width;
+    choose_box->option_next.height = (float)ui_font_height;
+
+    ui_choose_box_set_widget_text(&choose_box->option_next, center_x, content_y, next_width);
+    ui_choose_box_set_widget_text(&choose_box->option_curr, exit_x, content_y, (uint16_t)choose_box->option_curr.width);
+
+    ui_cursor.target_x = center_x - UI_H_MARGIN;
+    ui_cursor.target_y = content_y - UI_V_MARGIN / 2;
+    ui_cursor.target_width = next_width + UI_H_MARGIN * 2;
+    ui_cursor.target_height = ui_font_height + UI_V_MARGIN;
+    ui_cursor.should_move = true;
+}
+
+/**
+ *@brief UIChooseBox成员函数：渲染选择框在菜单中的显示
+ *
+ * @param self UIWidget对象指针（指向UIChooseBox.base.base）
+ */
+void ui_choose_box_render(UIWidget* self)
+{
+    UIChooseBox* choose_box = container_of(self, UIChooseBox, base);
+    const char* value_text = ui_choose_box_get_text(choose_box, choose_box->selected_index);
+    uint16_t value_width = ui_text_width(value_text);
+
+    oled_show_mix_string_area(
+        (int16_t)(choose_box->base.base.target_x),
+        (int16_t)(choose_box->base.base.target_y),
+        (int16_t)(choose_box->base.base.target_width),
+        (int16_t)(choose_box->base.base.target_height),
+        (int16_t)(choose_box->base.base.x),
+        (int16_t)(choose_box->base.base.y),
+        choose_box->base.window.title,
+        ui_chinese_size,
+        ui_ascii_size
+    );
+
+    oled_show_mix_string_area(
+        (int16_t)(choose_box->base.base.target_x),
+        (int16_t)(choose_box->base.base.target_y),
+        (int16_t)(choose_box->base.base.target_width),
+        (int16_t)(choose_box->base.base.target_height),
+        (int16_t)(choose_box->base.base.x + choose_box->base.base.width - UI_H_MARGIN - value_width),
+        (int16_t)(choose_box->base.base.y),
+        value_text,
+        ui_chinese_size,
+        ui_ascii_size
+    );
+}
+
+/**
+ *@brief UIChooseBox成员函数：进入选择框并初始化编辑状态
+ *
+ * @param self UIWidget对象指针（指向UIChooseBox.base.base）
+ */
+void ui_choose_box_enter(UIWidget* self)
+{
+    UIChooseBox* choose_box = container_of(self, UIChooseBox, base);
+    ui_popup_button_enter(&choose_box->base.base);
+
+    choose_box->edit_index = choose_box->selected_index;
+    choose_box->display_index = choose_box->selected_index;
+    choose_box->is_animating = false;
+
+    const char* text = ui_choose_box_get_text(choose_box, choose_box->display_index);
+    uint16_t width = ui_text_width(text);
+    int16_t content_y = ui_choose_box_get_content_y(&choose_box->base.window);
+    int16_t center_x = ui_choose_box_get_center_x(&choose_box->base.window, width);
+
+    init_ui_widget(&choose_box->option_curr);
+    init_ui_widget(&choose_box->option_next);
+    choose_box->option_curr.x = (float)center_x;
+    choose_box->option_curr.y = (float)content_y;
+    choose_box->option_curr.width = (float)width;
+    choose_box->option_curr.height = (float)ui_font_height;
+
+    ui_choose_box_set_widget_text(&choose_box->option_curr, center_x, content_y, width);
+
+    ui_cursor.target_x = center_x - UI_H_MARGIN;
+    ui_cursor.target_y = content_y - UI_V_MARGIN / 2;
+    ui_cursor.target_width = width + UI_H_MARGIN * 2;
+    ui_cursor.target_height = ui_font_height + UI_V_MARGIN;
+    ui_cursor.should_move = true;
+}
+
+/**
+ *@brief UIChooseBox成员函数：渲染选择框窗口内容
+ *
+ * @param self UIWindow对象指针（指向UIChooseBox.base.window）
+ */
+void ui_choose_box_window_render_items(UIWindow* self)
+{
+    UIChooseBox* choose_box = container_of(self, UIChooseBox, base.window);
+    ui_popup_button_window_render_items(&choose_box->base.window);
+
+    if (choose_box->option_curr.should_move)
+    {
+        choose_box->option_curr.step(&choose_box->option_curr);
+    }
+    if (choose_box->option_next.should_move)
+    {
+        choose_box->option_next.step(&choose_box->option_next);
+    }
+
+    const char* curr_text = ui_choose_box_get_text(choose_box, choose_box->display_index);
+    oled_show_mix_string_area(
+        (int16_t)(choose_box->base.window.base.x),
+        (int16_t)(choose_box->base.window.base.y),
+        (int16_t)(choose_box->base.window.base.width),
+        (int16_t)(choose_box->base.window.base.height),
+        (int16_t)(choose_box->option_curr.x),
+        (int16_t)(choose_box->option_curr.y),
+        curr_text,
+        ui_chinese_size,
+        ui_ascii_size
+    );
+
+    if (choose_box->is_animating)
+    {
+        const char* next_text = ui_choose_box_get_text(choose_box, choose_box->edit_index);
+        oled_show_mix_string_area(
+            (int16_t)(choose_box->base.window.base.x),
+            (int16_t)(choose_box->base.window.base.y),
+            (int16_t)(choose_box->base.window.base.width),
+            (int16_t)(choose_box->base.window.base.height),
+            (int16_t)(choose_box->option_next.x),
+            (int16_t)(choose_box->option_next.y),
+            next_text,
+            ui_chinese_size,
+            ui_ascii_size
+        );
+
+        if (!choose_box->option_curr.should_move && !choose_box->option_next.should_move)
+        {
+            choose_box->is_animating = false;
+            choose_box->option_curr = choose_box->option_next;
+            choose_box->display_index = choose_box->edit_index;
+        }
+    }
+}
+
+/**
+ *@brief UIChooseBox成员函数：处理选择框窗口输入
+ *
+ * @param self UIWindow对象指针（指向UIChooseBox.base.window）
+ */
+void ui_choose_box_window_process_input(UIWindow* self)
+{
+    UIChooseBox* choose_box = container_of(self, UIChooseBox, base.window);
+
+    if (ui_key_back->signal_event == KEY_PRESS)
+    {
+        choose_box->edit_index = choose_box->selected_index;
+        ui_popup_button_window_process_input(&choose_box->base.window);
+        return;
+    }
+
+    ui_popup_button_window_process_input(&choose_box->base.window);
+
+    if (!choose_box->is_animating && choose_box->option_count > 0)
+    {
+        if (ui_key_left->signal_event == KEY_PRESS)
+        {
+            uint8_t next_index = (uint8_t)((choose_box->edit_index + choose_box->option_count - 1) % choose_box->option_count);
+            ui_choose_box_start_slide(choose_box, -1, next_index);
+            choose_box->edit_index = next_index;
+        }
+        else if (ui_key_right->signal_event == KEY_PRESS)
+        {
+            uint8_t next_index = (uint8_t)((choose_box->edit_index + 1) % choose_box->option_count);
+            ui_choose_box_start_slide(choose_box, 1, next_index);
+            choose_box->edit_index = next_index;
+        }
+    }
+
+    if (ui_key_enter->signal_event == KEY_PRESS)
+    {
+        choose_box->selected_index = choose_box->edit_index;
+        if (choose_box->on_value_changed != NULL)
+        {
+            choose_box->on_value_changed(choose_box->selected_index, ui_choose_box_get_text(choose_box, choose_box->selected_index));
+        }
+        choose_box->base.window.base.target_width = 0.f;
+        choose_box->base.window.base.target_height = 0.f;
+        choose_box->base.window.is_exiting = true;
+        choose_box->base.window.base.should_move = true;
     }
 }
 
@@ -737,6 +1147,25 @@ void init_ui_label(UILabel* label, const char* text)
 }
 
 /**
+ *@brief UICheckbox成员函数：初始化复选框
+ *
+ * @param checkbox UICheckbox对象指针
+ * @param text 左侧显示文本
+ * @param initial_checked 初始选中状态
+ * @param on_value_changed 状态改变回调函数
+ */
+void init_ui_checkbox(UICheckbox* checkbox, const char* text, bool initial_checked, CheckboxChangeCallbackFunc on_value_changed)
+{
+    init_ui_widget(&checkbox->base);
+    checkbox->base.render = ui_checkbox_render;
+    checkbox->base.enter = ui_checkbox_enter;
+
+    checkbox->text = text;
+    checkbox->checked = initial_checked;
+    checkbox->on_value_changed = on_value_changed;
+}
+
+/**
  *@brief UIPopupButton成员函数：初始化弹窗按钮
  *
  * @param button UIPopupButton对象指针
@@ -753,6 +1182,49 @@ void init_ui_popup_button(UIPopupButton* button, const char* text)
     button->base.enter = ui_popup_button_enter;
 }
 
+/**
+ *@brief UIChooseBox成员函数：初始化选择框
+ *
+ * @param choose_box UIChooseBox对象指针
+ * @param title 选择框标题
+ * @param options 选项字符串数组
+ * @param option_count 选项数量
+ * @param initial_index 初始选中索引
+ * @param on_value_changed 确认选择后的回调函数
+ */
+void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char** options, uint8_t option_count, uint8_t initial_index, ChooseChangeCallbackFunc on_value_changed)
+{
+    init_ui_popup_button(&choose_box->base, title);
+    choose_box->base.base.enter = ui_choose_box_enter;
+    choose_box->base.base.render = ui_choose_box_render;
+    init_ui_window(&choose_box->base.window, title);
+    choose_box->base.window.render = ui_choose_box_window_render_items;
+    choose_box->base.window.process_input = ui_choose_box_window_process_input;
+
+    choose_box->options = options;
+    choose_box->option_count = option_count;
+    choose_box->selected_index = (option_count > 0 && initial_index < option_count) ? initial_index : 0;
+    choose_box->edit_index = choose_box->selected_index;
+    choose_box->display_index = choose_box->selected_index;
+    choose_box->is_animating = false;
+    choose_box->slide_dir = 0;
+    init_ui_widget(&choose_box->option_curr);
+    init_ui_widget(&choose_box->option_next);
+    choose_box->on_value_changed = on_value_changed;
+}
+
+/**
+ *@brief UIInputBoxDouble成员函数：初始化双精度输入框
+ *
+ * @param input_box UIInputBoxDouble对象指针
+ * @param title 输入框标题
+ * @param initial_value 初始值
+ * @param suffix 后缀字符串数组
+ * @param suffix_count 后缀数量
+ * @param frac_length 小数位数
+ * @param ignore_positive_sgn 是否忽略正号显示
+ * @param on_value_changed 数值确认后的回调函数
+ */
 void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed)
 {
     init_ui_popup_button(&input_box->base, title);

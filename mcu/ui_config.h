@@ -3,13 +3,15 @@
 #include "bsp/msp_sys.h"
 
 UIPopupButton test_button_1;
-UILabel test_label_1;
+UICheckbox test_checkbox_1;
 UIInputBoxDouble test_input_box_1;
+UIChooseBox test_choose_box_1;
 
 const char* test_input_box_suffixes[] = { "mV", "V" };
+const char* test_choose_box_options[] = { "Low", "Mid", "High" };
 
 UIMenu main_menu;
-UIWidget* main_menu_items[] = { &test_button_1.base, &test_label_1.base, &test_input_box_1.base.base };
+UIWidget* main_menu_items[] = { &test_button_1.base, &test_checkbox_1.base, &test_input_box_1.base.base, &test_choose_box_1.base.base };
 
 void init_ui()
 {
@@ -35,10 +37,11 @@ void init_ui()
     ui_key_9 = &keyboard_keys[2][2];
     ui_key_point = &keyboard_keys[3][0];
 
-    init_ui_label(&test_label_1, "Label 1");
+    init_ui_checkbox(&test_checkbox_1, "Enable", false, NULL);
     init_ui_popup_button(&test_button_1, "Button 1");
     init_ui_input_box_double(&test_input_box_1, "Vol", 1234.567, test_input_box_suffixes, 2, 3, true, NULL);
-    init_ui_menu(&main_menu, "Main Menu", main_menu_items, 3);
+    init_ui_choose_box(&test_choose_box_1, "Mode", test_choose_box_options, 3, 0, NULL);
+    init_ui_menu(&main_menu, "Main Menu", main_menu_items, 4);
     ui_main_menu = &main_menu;
 
     ui_update_delta = sys_tick;
