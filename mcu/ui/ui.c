@@ -3,6 +3,9 @@
 
 UIMenu* ui_main_menu = NULL;
 UIWindow* ui_current_window = NULL;
+static UIMenu* ui_active_menu = NULL;
+static UIMenu* ui_transition_menu = NULL;
+static bool ui_menu_transition_active = false;
 OLEDFontSizeHalf ui_ascii_size = OLED_6X8_HALF;
 OLEDFontSizeFull ui_chinese_size = OLED_8X8_FULL;
 uint8_t ui_font_height = 8;
@@ -40,6 +43,11 @@ static int16_t ui_input_box_get_content_x(const UIInputBoxDouble* input_box, uin
 static int16_t ui_input_box_get_unit_x(const UIInputBoxDouble* input_box, int16_t content_x, uint8_t total_length, uint16_t gap_length);
 static void ui_input_box_set_unit_widget(UIWidget* widget, int16_t x, int16_t y);
 static void ui_input_box_start_unit_slide(UIInputBoxDouble* input_box, uint8_t next_index, bool forward, int16_t unit_x, int16_t content_y);
+static void ui_menu_item_render(UIWidget* self);
+static void ui_menu_widget_render(UIWidget* self);
+static void ui_menu_enter(UIWidget* self);
+static void ui_menu_start_transition(UIMenu* from_menu, UIMenu* to_menu, int8_t direction);
+static void ui_menu_update_cursor(UIMenu* menu);
 
 /**
  *@brief 在菜单项数组中寻找下一个可选项，所谓可选项是指enter函数指针不为NULL的项
@@ -302,15 +310,94 @@ void ui_widget_step(UIWidget* widget)
     }
 }
 
+static void ui_menu_item_render(UIWidget* self)
+{
+    UIMenu* menu = container_of(self, UIMenu, base);
+    oled_show_mix_string_area(
+        (int16_t)(menu->base.x),
+        (int16_t)(menu->base.y),
+        (int16_t)(menu->base.width),
+        (int16_t)(menu->base.height),
+        (int16_t)(menu->base.x),
+        (int16_t)(menu->base.y),
+        menu->title,
+        ui_chinese_size,
+        ui_ascii_size
+    );
+}
+
+static void ui_menu_widget_render(UIWidget* self)
+{
+    UIMenu* menu = container_of(self, UIMenu, base);
+    if (menu == ui_active_menu || menu->anchor.should_move || menu == ui_transition_menu)
+    {
+        if (menu->render != NULL)
+        {
+            menu->render(menu);
+        }
+        return;
+    }
+
+    ui_menu_item_render(self);
+}
+
+static void ui_menu_start_transition(UIMenu* from_menu, UIMenu* to_menu, int8_t direction)
+{
+    if (to_menu == NULL || from_menu == to_menu)
+    {
+        return;
+    }
+
+    ui_transition_menu = from_menu;
+    ui_active_menu = to_menu;
+    ui_menu_transition_active = true;
+
+    from_menu->anchor.target_x = (direction > 0) ? -OLED_WIDTH : OLED_WIDTH;
+    from_menu->anchor.target_y = 0.f;
+    from_menu->anchor.should_move = true;
+
+    to_menu->anchor.x = (direction > 0) ? OLED_WIDTH : -OLED_WIDTH;
+    to_menu->anchor.y = 0.f;
+    to_menu->anchor.target_x = 0.f;
+    to_menu->anchor.target_y = 0.f;
+    to_menu->anchor.should_move = true;
+
+    ui_menu_update_cursor(to_menu);
+}
+
+static void ui_menu_enter(UIWidget* self)
+{
+    UIMenu* menu = container_of(self, UIMenu, base);
+    if (ui_active_menu == NULL)
+    {
+        ui_active_menu = ui_main_menu;
+    }
+
+    if (ui_active_menu != NULL && menu != ui_active_menu)
+    {
+        menu->parent = ui_active_menu;
+        if (ui_active_menu->on_exit != NULL)
+        {
+            ui_active_menu->on_exit(ui_active_menu);
+        }
+        if (menu->on_enter != NULL)
+        {
+            menu->on_enter(menu);
+        }
+        ui_menu_start_transition(ui_active_menu, menu, 1);
+    }
+}
+
 /**
  *@brief UIMenu成员函数：根据当前选中项更新光标目标区域
  *
  * @param menu UIMenu对象指针
  */
-void ui_menu_update_cursor(UIMenu* menu)
+static void ui_menu_update_cursor(UIMenu* menu)
 {
     UIWidget* selected_item = menu->items[menu->selected_index];
-    ui_cursor.target_x = 0;
+    float anchor_x = menu->anchor.should_move ? menu->anchor.target_x : menu->anchor.x;
+    ui_cursor.target_x = anchor_x;
     ui_cursor.target_y = selected_item->target_y - UI_V_MARGIN / 2;
     ui_cursor.target_width = OLED_WIDTH;
     ui_cursor.target_height = selected_item->target_height + UI_V_MARGIN;
@@ -324,19 +411,24 @@ void ui_menu_update_cursor(UIMenu* menu)
  */
 void ui_menu_render_items(UIMenu* menu)
 {
+    if (menu->anchor.should_move)
+    {
+        ui_widget_step(&menu->anchor);
+    }
+
     if (menu->layout != NULL)
     {
         menu->layout(menu);
     }
 
-    if (menu->process_input != NULL && ui_current_window == NULL) // 只有在没有弹窗时才处理菜单输入
+    if (menu == ui_active_menu && !ui_menu_transition_active && menu->process_input != NULL && ui_current_window == NULL)
     {
         menu->process_input(menu);
     }
 
-    oled_draw_rectangle(0, 0, (int16_t)(ui_ascii_size / 2), ui_font_height, true);
+    oled_draw_rectangle((int16_t)menu->anchor.x, 0, (int16_t)(ui_ascii_size / 2), ui_font_height, true);
     oled_show_mix_string(
-        ui_ascii_size,
+        (int16_t)(menu->anchor.x + ui_ascii_size),
         0,
         menu->title,
         ui_chinese_size,
@@ -347,25 +439,19 @@ void ui_menu_render_items(UIMenu* menu)
     for (uint8_t i = 0; i < menu->item_count; i++)
     {
         item = menu->items[i];
-        if (item->should_move)
-        {
-            item->step(item);
-        }
-
         if (item->render != NULL)
         {
             item->render(item);
         }
     }
 
-    if (ui_current_window != NULL)
+    if (menu == ui_active_menu && ui_current_window != NULL)
     {
         ui_current_window->render(ui_current_window);
         if (ui_current_window->is_exiting)
         {
-            ui_menu_update_cursor(menu); // 更新菜单光标位置，确保光标在正确的选项上显示
-
-            if (!ui_current_window->base.should_move)  // 只有在窗口完全停止移动后才销毁窗口并返回菜单
+            ui_menu_update_cursor(menu);
+            if (!ui_current_window->base.should_move)
             {
                 ui_current_window->is_exiting = false;
                 ui_current_window = NULL;
@@ -373,17 +459,19 @@ void ui_menu_render_items(UIMenu* menu)
         }
     }
 
-    if (ui_cursor.should_move)
+    if (menu == ui_active_menu)
     {
-        ui_widget_step(&ui_cursor);
+        if (ui_cursor.should_move)
+        {
+            ui_widget_step(&ui_cursor);
+        }
+        oled_reverse_area(
+            (int16_t)ui_cursor.x,
+            (int16_t)ui_cursor.y,
+            (int16_t)ui_cursor.width,
+            (int16_t)ui_cursor.height
+        );
     }
-
-    oled_reverse_area(
-        (int16_t)ui_cursor.x,
-        (int16_t)ui_cursor.y,
-        (int16_t)ui_cursor.width,
-        (int16_t)ui_cursor.height
-    );
 }
 
 /**
@@ -414,15 +502,19 @@ void ui_menu_render_self(UIWidget* self)
  */
 void ui_menu_layout(UIMenu* menu)
 {
-    int16_t y = ui_font_height + UI_V_MARGIN; // 从标题下方开始布局
+    int16_t y = (int16_t)(menu->anchor.y + ui_font_height + UI_V_MARGIN); // 从标题下方开始布局
     for (uint8_t i = 0; i < menu->item_count; i++)
     {
         UIWidget* item = menu->items[i];
-        item->target_x = UI_H_MARGIN;
-        item->target_y = y;
-        item->target_width = OLED_WIDTH - 2 * UI_H_MARGIN;
-        item->target_height = ui_font_height;
-        item->should_move = true;
+        item->x = (float)(menu->anchor.x + UI_H_MARGIN);
+        item->y = (float)y;
+        item->width = (float)(OLED_WIDTH - 2 * UI_H_MARGIN);
+        item->height = (float)ui_font_height;
+        item->target_x = item->x;
+        item->target_y = item->y;
+        item->target_width = item->width;
+        item->target_height = item->height;
+        item->should_move = false;
         y += item->target_height + UI_V_MARGIN;
     }
 }
@@ -450,6 +542,20 @@ void ui_menu_process_input(UIMenu* menu)
         {
             selected_item->enter(selected_item);
         }
+    }
+
+    if (ui_key_back->signal_event == KEY_PRESS && menu->parent != NULL)
+    {
+        if (menu->on_exit != NULL)
+        {
+            menu->on_exit(menu);
+        }
+        if (menu->parent->on_enter != NULL)
+        {
+            menu->parent->on_enter(menu->parent);
+        }
+        ui_menu_start_transition(menu, menu->parent, -1);
+        return;
     }
 
     if (selection_changed)
@@ -1324,12 +1430,23 @@ void init_ui_window(UIWindow* window, const char* title)
 void init_ui_menu(UIMenu* menu, const char* title, UIWidget** items, uint8_t item_count)
 {
     init_ui_widget(&menu->base);
-    menu->base.render = ui_menu_render_self;
+    menu->base.render = ui_menu_widget_render;
+    menu->base.enter = ui_menu_enter;
+
+    init_ui_widget(&menu->anchor);
+    menu->anchor.x = 0.f;
+    menu->anchor.y = 0.f;
+    menu->anchor.target_x = 0.f;
+    menu->anchor.target_y = 0.f;
+    menu->anchor.should_move = false;
 
     menu->title = title;
     menu->items = items;
     menu->item_count = item_count;
     menu->selected_index = 0;
+    menu->parent = NULL;
+    menu->on_enter = NULL;
+    menu->on_exit = NULL;
     menu->render = ui_menu_render_items;
     menu->layout = ui_menu_layout;
     menu->process_input = ui_menu_process_input;
@@ -1493,9 +1610,24 @@ void ui_update()
     ui_update_delta = sys_tick - ui_last_update_tick;
     ui_last_update_tick = sys_tick;
     oled_clear();
+    if (ui_active_menu == NULL)
+    {
+        ui_active_menu = ui_main_menu;
+    }
+
     if (ui_main_menu != NULL && ui_main_menu->render != NULL)
     {
         ui_main_menu->render(ui_main_menu);
+    }
+
+    if (ui_menu_transition_active && ui_transition_menu != NULL && ui_active_menu != NULL)
+    {
+        if (!ui_transition_menu->anchor.should_move && !ui_active_menu->anchor.should_move)
+        {
+            ui_menu_transition_active = false;
+            ui_transition_menu = NULL;
+            ui_menu_update_cursor(ui_active_menu);
+        }
     }
     oled_refresh();
 }

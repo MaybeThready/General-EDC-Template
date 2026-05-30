@@ -29,6 +29,8 @@
 #define UI_NO_DIGIT_INPUT (255)
 #define UI_DIGIT_INPUT_POINT (10)
 
+struct UIMenu;
+typedef void (*MenuCallbackFunc)(struct UIMenu* menu);
 typedef void (*DoubleChangeCallbackFunc)(double value);
 typedef void (*ChooseChangeCallbackFunc)(uint8_t index, const char* text);
 typedef void (*CheckboxChangeCallbackFunc)(bool checked);
@@ -69,10 +71,14 @@ typedef struct UIWindow
 typedef struct UIMenu
 {
     UIWidget base;
+    UIWidget anchor;  // 菜单内容的参考点，用于菜单整体移动
     const char* title;
     UIWidget** items;
     uint8_t item_count;
     int16_t selected_index;
+    struct UIMenu* parent;
+    MenuCallbackFunc on_enter;
+    MenuCallbackFunc on_exit;
     void (*render)(struct UIMenu* widget);
     void (*layout)(struct UIMenu* menu);
     void (*process_input)(struct UIMenu* menu);
@@ -153,6 +159,9 @@ typedef struct UIChooseBox
  * @param item_count 菜单项数量
  * @note 传入的items需要在整个菜单生命周期内保持有效
  * @note 仅enter不为NULL的项可被选择
+ * @note items中若包含菜单对象，按enter会进入子菜单
+ * @note 在子菜单按back会回退到parent菜单（如已设置）
+ * @note 可通过menu->on_enter/on_exit注册进出回调
  */
 void init_ui_menu(UIMenu* menu, const char* title, UIWidget** items, uint8_t item_count);
 

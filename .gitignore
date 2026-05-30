@@ -1,5 +1,6 @@
 # Keil/MDK build outputs
 mcu/keil/Objects
+mcu/ui_test_config.h
 
 # General build artifacts
 **/*.o
