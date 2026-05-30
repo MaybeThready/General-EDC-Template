@@ -1,10 +1,7 @@
 #include "ti_msp_dl_config.h"
 #include "bsp/msp_sys.h"
-#include "bsp/oled/oled.h"
 #include "bsp/keyboard.h"
-#include "bsp/led.h"
 #include "ui_config.h"
-#include <string.h>
 
 int main()
 {
@@ -14,21 +11,9 @@ int main()
     init_ui();
     init_keyboard();
 
-    char test_str[] = "Hello, World!";
-
     while (1)
     {
         keyboard_update();
-        if (keyboard_keys[0][0].state_event == KEY_ON)
-        {
-            strcpy(test_str, "World, Hello!");
-        }
-        else
-        {
-            strcpy(test_str, "Hello, World!");
-        }
-        // oled_show_string(0, 0, test_str, OLED_6X8_HALF);
-        // oled_refresh();
         ui_update();
     }
 

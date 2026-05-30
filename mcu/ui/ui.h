@@ -112,10 +112,17 @@ typedef struct UIInputBoxDouble
     double value;
     double edit_value;
     uint8_t frac_pos;
-    double coeff;  // 对于不同单位，显示的数值可能需要乘以不同的系数。注意这个是从实际值到显示值的系数，即显示值 = 实际值 * coeff
+    bool cursor_on_unit;
+    const double* coeffs;  // 不同单位的显示系数数组：显示值 = 实际值 * coeffs[index]
     const char** suffix;
     uint8_t suffix_count;
     uint8_t selected_suffix_index;
+    uint8_t edit_suffix_index;
+    uint8_t display_suffix_index;
+    bool unit_animating;
+    int8_t unit_slide_dir;
+    UIWidget unit_curr;
+    UIWidget unit_next;
     uint32_t frac_length;
     bool ignore_positive_sgn;  // 是否在显示正数时忽略+号
     UIInputBoxState state;
@@ -159,6 +166,15 @@ void init_ui_menu(UIMenu* menu, const char* title, UIWidget** items, uint8_t ite
 void init_ui_label(UILabel* label, const char* text);
 
 /**
+ *@brief 设置标签文本
+ *
+ * @param label 标签对象指针
+ * @param text 新的标签文本
+ * @note text需在标签生命周期内保持有效
+ */
+void ui_label_set_text(UILabel* label, const char* text);
+
+/**
  *@brief 初始化复选框
  *
  * @param checkbox 复选框对象指针
@@ -186,15 +202,18 @@ void init_ui_popup_button(UIPopupButton* button, const char* text);
  * @param input_box 输入框对象指针
  * @param title 输入框标题
  * @param initial_value 初始值
+ * @param coeffs 单位系数数组，长度需与suffix_count一致
  * @param suffix 后缀字符串数组
  * @param suffix_count 后缀数量
  * @param frac_length 小数位数
  * @param ignore_positive_sgn 是否忽略正号显示
  * @param on_value_changed 按确认键后的回调
  * @note 输入过程中修改的是临时值，只有按确认键才写回
- * @note suffix数组及字符串需在输入框生命周期内保持有效
+ * @note 单位可通过scr_up/scr_down切换，显示值保持不变，仅单位变化
+ * @note 单位切换后的实际值仅在确认键按下后写回
+ * @note suffix与coeffs数组及其内容需在输入框生命周期内保持有效
  */
-void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed);
+void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const double* coeffs, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed);
 
 /**
  *@brief 初始化选择框
