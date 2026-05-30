@@ -197,7 +197,7 @@ void ui_label_set_text(UILabel* label, const char* text);
  * @note 复选框无弹窗，按确认键切换状态
  * @note text需在复选框生命周期内保持有效
  */
-void init_ui_checkbox(UICheckbox* checkbox, const char* text, bool initial_checked, CheckboxChangeCallbackFunc on_value_changed);
+void init_ui_checkbox(UICheckbox* checkbox, const char* text, bool initial_checked);
 
 /**
  *@brief 初始化弹窗按钮
@@ -226,7 +226,7 @@ void init_ui_popup_button(UIPopupButton* button, const char* text);
  * @note 单位切换后的实际值仅在确认键按下后写回
  * @note suffix与coeffs数组及其内容需在输入框生命周期内保持有效
  */
-void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const double* coeffs, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed);
+void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const double* coeffs, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn);
 
 /**
  *@brief 初始化选择框
@@ -240,7 +240,7 @@ void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, do
  * @note 左右键切换选项，确认键保存，返回键取消
  * @note options数组及字符串需在选择框生命周期内保持有效
  */
-void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char** options, uint8_t option_count, uint8_t initial_index, ChooseChangeCallbackFunc on_value_changed);
+void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char** options, uint8_t option_count, uint8_t initial_index);
 
 extern UIMenu* ui_main_menu;  // 主菜单，程序启动后显示的默认菜单
 extern UIWindow* ui_current_window;  // 当前活动的窗口，如果不为NULL则显示该窗口并优先处理其输入，直到窗口退出后才会继续显示菜单

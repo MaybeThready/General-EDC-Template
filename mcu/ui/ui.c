@@ -1501,7 +1501,7 @@ void ui_label_set_text(UILabel* label, const char* text)
  * @param initial_checked 初始选中状态
  * @param on_value_changed 状态改变回调函数，参数为UICheckbox对象指针
  */
-void init_ui_checkbox(UICheckbox* checkbox, const char* text, bool initial_checked, CheckboxChangeCallbackFunc on_value_changed)
+void init_ui_checkbox(UICheckbox* checkbox, const char* text, bool initial_checked)
 {
     init_ui_widget(&checkbox->base);
     checkbox->base.render = ui_checkbox_render;
@@ -1509,7 +1509,7 @@ void init_ui_checkbox(UICheckbox* checkbox, const char* text, bool initial_check
 
     checkbox->text = text;
     checkbox->checked = initial_checked;
-    checkbox->on_value_changed = on_value_changed;
+    checkbox->on_value_changed = NULL;
 }
 
 /**
@@ -1539,7 +1539,7 @@ void init_ui_popup_button(UIPopupButton* button, const char* text)
  * @param initial_index 初始选中索引
  * @param on_value_changed 确认选择后的回调函数，参数为UIChooseBox对象指针
  */
-void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char** options, uint8_t option_count, uint8_t initial_index, ChooseChangeCallbackFunc on_value_changed)
+void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char** options, uint8_t option_count, uint8_t initial_index)
 {
     init_ui_popup_button(&choose_box->base, title);
     choose_box->base.base.enter = ui_choose_box_enter;
@@ -1557,7 +1557,7 @@ void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char**
     choose_box->slide_dir = 0;
     init_ui_widget(&choose_box->option_curr);
     init_ui_widget(&choose_box->option_next);
-    choose_box->on_value_changed = on_value_changed;
+    choose_box->on_value_changed = NULL;
 }
 
 /**
@@ -1572,7 +1572,7 @@ void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char**
  * @param ignore_positive_sgn 是否忽略正号显示
  * @param on_value_changed 数值确认后的回调函数，参数为UIInputBoxDouble对象指针
  */
-void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const double* coeffs, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed)
+void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const double* coeffs, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn)
 {
     init_ui_popup_button(&input_box->base, title);
     input_box->base.base.enter = ui_input_box_double_enter;
@@ -1598,7 +1598,7 @@ void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, do
     input_box->frac_length = frac_length;
     input_box->ignore_positive_sgn = ignore_positive_sgn;
     input_box->state = UI_INPUT_BOX_IDLE;
-    input_box->on_value_changed = on_value_changed;
+    input_box->on_value_changed = NULL;
 }
 
 /**
