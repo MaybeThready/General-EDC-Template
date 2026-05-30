@@ -691,7 +691,7 @@ void ui_checkbox_enter(UIWidget* self)
     checkbox->checked = !checkbox->checked;
     if (checkbox->on_value_changed != NULL)
     {
-        checkbox->on_value_changed(checkbox->checked);
+        checkbox->on_value_changed(checkbox);
     }
 }
 
@@ -1112,7 +1112,7 @@ void ui_input_box_double_window_process_input(UIWindow* self)
         input_box->cursor_on_unit = false;
         if (input_box->on_value_changed != NULL)
         {
-            input_box->on_value_changed(input_box->value);
+            input_box->on_value_changed(input_box);
         }
         input_box->state = UI_INPUT_BOX_IDLE;
         input_box->base.window.base.target_width = 0.f;
@@ -1366,7 +1366,7 @@ void ui_choose_box_window_process_input(UIWindow* self)
         choose_box->selected_index = choose_box->edit_index;
         if (choose_box->on_value_changed != NULL)
         {
-            choose_box->on_value_changed(choose_box->selected_index, ui_choose_box_get_text(choose_box, choose_box->selected_index));
+            choose_box->on_value_changed(choose_box);
         }
         choose_box->base.window.base.target_width = 0.f;
         choose_box->base.window.base.target_height = 0.f;
@@ -1499,7 +1499,7 @@ void ui_label_set_text(UILabel* label, const char* text)
  * @param checkbox UICheckbox对象指针
  * @param text 左侧显示文本
  * @param initial_checked 初始选中状态
- * @param on_value_changed 状态改变回调函数
+ * @param on_value_changed 状态改变回调函数，参数为UICheckbox对象指针
  */
 void init_ui_checkbox(UICheckbox* checkbox, const char* text, bool initial_checked, CheckboxChangeCallbackFunc on_value_changed)
 {
@@ -1537,7 +1537,7 @@ void init_ui_popup_button(UIPopupButton* button, const char* text)
  * @param options 选项字符串数组
  * @param option_count 选项数量
  * @param initial_index 初始选中索引
- * @param on_value_changed 确认选择后的回调函数
+ * @param on_value_changed 确认选择后的回调函数，参数为UIChooseBox对象指针
  */
 void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char** options, uint8_t option_count, uint8_t initial_index, ChooseChangeCallbackFunc on_value_changed)
 {
@@ -1570,7 +1570,7 @@ void init_ui_choose_box(UIChooseBox* choose_box, const char* title, const char**
  * @param suffix_count 后缀数量
  * @param frac_length 小数位数
  * @param ignore_positive_sgn 是否忽略正号显示
- * @param on_value_changed 数值确认后的回调函数
+ * @param on_value_changed 数值确认后的回调函数，参数为UIInputBoxDouble对象指针
  */
 void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, double initial_value, const double* coeffs, const char** suffix, uint8_t suffix_count, uint8_t frac_length, bool ignore_positive_sgn, DoubleChangeCallbackFunc on_value_changed)
 {
