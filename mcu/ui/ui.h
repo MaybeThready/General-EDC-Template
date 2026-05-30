@@ -193,7 +193,6 @@ void ui_label_set_text(UILabel* label, const char* text);
  * @param checkbox 复选框对象指针
  * @param text 左侧显示文本
  * @param initial_checked 初始选中状态
- * @param on_value_changed 状态改变回调函数，参数为UICheckbox对象指针
  * @note 复选框无弹窗，按确认键切换状态
  * @note text需在复选框生命周期内保持有效
  */
@@ -220,7 +219,6 @@ void init_ui_popup_button(UIPopupButton* button, const char* text);
  * @param suffix_count 后缀数量
  * @param frac_length 小数位数
  * @param ignore_positive_sgn 是否忽略正号显示
- * @param on_value_changed 按确认键后的回调，参数为UIInputBoxDouble对象指针
  * @note 输入过程中修改的是临时值，只有按确认键才写回
  * @note 单位可通过scr_up/scr_down切换，显示值保持不变，仅单位变化
  * @note 单位切换后的实际值仅在确认键按下后写回
@@ -236,7 +234,6 @@ void init_ui_input_box_double(UIInputBoxDouble* input_box, const char* title, do
  * @param options 选项字符串数组
  * @param option_count 选项数量
  * @param initial_index 初始选中索引
- * @param on_value_changed 按确认键后的回调，参数为UIChooseBox对象指针
  * @note 左右键切换选项，确认键保存，返回键取消
  * @note options数组及字符串需在选择框生命周期内保持有效
  */

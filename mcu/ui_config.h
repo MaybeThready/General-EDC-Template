@@ -33,7 +33,7 @@ void init_ui()
     ui_key_9 = &keyboard_keys[2][2];
     ui_key_point = &keyboard_keys[3][0];
 
-    init_ui_choose_box(&test_choose_box, "Mode", test_choose_box_options, 3, 0, NULL);
+    init_ui_choose_box(&test_choose_box, "Mode", test_choose_box_options, 3, 0);
     init_ui_menu(&main_menu, "Main Menu", main_menu_items, 1);
     ui_main_menu = &main_menu;
 
