@@ -85,46 +85,44 @@ module DIV
     assign clk_div = r_clk_div;
 endmodule
 
-
-
 /** 二进制数转BCD码
 * param W: 二进制位宽
+* param BCD_WIDTH: BCD码总长
 * bin: W位二进制输入
 * bcd: BCD码输出，每4位表示一个十进制数
 */
 module BIN2BCD
 #(
-    parameter W = 16
+    parameter W = 16,
+    parameter BCD_WIDTH = W + (W - 4) / 3 + 1
 )
 (
-    input [W-1:0] bin,
-    output [W+(W-4)/3:0] bcd
+    input  [W-1:0] bin,
+    output [BCD_WIDTH-1:0] bcd
 );
-    reg [W+(W-4)/3:0] r_bcd;
+
+    localparam NUM_DIGITS = BCD_WIDTH / 4;
+
+    reg [BCD_WIDTH-1:0] bcd_temp;
     integer i, j;
 
-    always @(bin)
+    always @(*)
     begin
-        for (i = 0; i <= W + (W - 4) / 3; i = i + 1)
-        begin
-            r_bcd[i] = 0;
-        end
+        bcd_temp = {BCD_WIDTH{1'b0}};
 
-        r_bcd[W-1:0] = bin;
-
-        for (i = 0; i <= W - 4; i = i + 1)
+        for (i = W-1; i >= 0; i = i - 1)
         begin
-            for (j = 0; j <= i / 3; j = j + 1)
+            for (j = 0; j < NUM_DIGITS; j = j + 1)
             begin
-                if (r_bcd[W-i+4*j-:4] > 4)
-                begin
-                    r_bcd[W-i+4*j-:4] = r_bcd[W-i+4*j-:4] + 4'd3;
-                end
+                if (bcd_temp[j*4 +: 4] >= 5)
+                    bcd_temp[j*4 +: 4] = bcd_temp[j*4 +: 4] + 4'd3;
             end
+
+            bcd_temp = {bcd_temp[BCD_WIDTH-2:0], bin[i]};
         end
     end
 
-    assign bcd = r_bcd;
+    assign bcd = bcd_temp;
 endmodule
 
 /** 有限状态机

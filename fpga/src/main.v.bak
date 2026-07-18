@@ -15,12 +15,7 @@ module main
     DIV #10 div100H(clk_1k, rstn, clk_100H);
 
     wire [18:0] count;
-    CTU #1000000 ctu(
-        .clk(clk_100H),
-        .rstn(rstn),
-        .count(count),
-        .carry()
-    );
+    CTU #1000000 ctu(clk_100H, rstn, count, );
 
     wire [23:0] bcd;
     BIN2BCD #(
@@ -34,7 +29,7 @@ module main
     BCDDGT dgt(
         .clk(clk_1k),
         .rstn(rstn),
-        .bcd(bcd),
+        .bdc(bcd),
         .dots(6'b000100),
         .sel(sel),
         .seg(seg)

@@ -95,7 +95,7 @@ endmodule
  */
 module FreqMeasure
 #(
-    parameter CLK_FREQ = 100_000_000,
+    parameter CLK_FREQ = 100_000_000
     parameter GATE_TIME = 100_000  // us
 )
 (
