@@ -24,7 +24,7 @@ module UnsignedRnd
         end
         else
         begin
-            out_reg = in[DW_IN-1:DW_IN-DW_OUT] + in[DW_IN-DW_OUT-1];;
+            out_reg = in[DW_IN-1:DW_IN-DW_OUT] + in[DW_IN-DW_OUT-1];
         end
     end
 
